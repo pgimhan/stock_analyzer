@@ -45,6 +45,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                 <Input
                   id="stockName"
                   placeholder="e.g., John Keells Holdings"
+                  title="Full name of the company"
                   {...register("stockName")}
                   data-testid="input-stock-name"
                 />
@@ -56,6 +57,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                   id="tickerSymbol"
                   placeholder="e.g., JKH"
                   className="font-mono"
+                  title="Stock exchange ticker symbol"
                   {...register("tickerSymbol")}
                   data-testid="input-ticker-symbol"
                 />
@@ -73,6 +75,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Current market price per share"
                     {...register("sharePrice", { valueAsNumber: true })}
                     data-testid="input-share-price"
                   />
@@ -85,6 +88,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Earnings per share for trailing twelve months"
                     {...register("epsTTM", { valueAsNumber: true })}
                     data-testid="input-eps-ttm"
                   />
@@ -96,6 +100,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Projected earnings per share for next year"
                     {...register("epsForward", { valueAsNumber: true })}
                     data-testid="input-eps-forward"
                   />
@@ -113,6 +118,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Total revenue or sales"
                     {...register("revenue", { valueAsNumber: true })}
                     data-testid="input-revenue"
                   />
@@ -125,6 +131,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Net profit after all expenses and taxes"
                     {...register("netProfit", { valueAsNumber: true })}
                     data-testid="input-net-profit"
                   />
@@ -136,6 +143,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Return on Equity - profitability relative to shareholder equity"
                     {...register("roe", { valueAsNumber: true })}
                     data-testid="input-roe"
                   />
@@ -147,6 +155,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Return on Assets - how efficiently assets generate profit"
                     {...register("roa", { valueAsNumber: true })}
                     data-testid="input-roa"
                   />
@@ -158,6 +167,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Total debt obligations"
                     {...register("debt", { valueAsNumber: true })}
                     data-testid="input-debt"
                   />
@@ -169,6 +179,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Operating cash flow from business activities"
                     {...register("cashFlow", { valueAsNumber: true })}
                     data-testid="input-cash-flow"
                   />
@@ -186,6 +197,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Price-to-Earnings ratio - stock price relative to earnings"
                     {...register("peRatio", { valueAsNumber: true })}
                     data-testid="input-pe-ratio"
                   />
@@ -198,6 +210,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Price-to-Book Value ratio - market value vs book value"
                     {...register("pbvRatio", { valueAsNumber: true })}
                     data-testid="input-pbv-ratio"
                   />
@@ -210,6 +223,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Annual dividend as percentage of stock price"
                     {...register("dividendYield", { valueAsNumber: true })}
                     data-testid="input-dividend-yield"
                   />
@@ -221,6 +235,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Price/Earnings to Growth ratio - P/E adjusted for growth"
                     {...register("pegRatio", { valueAsNumber: true })}
                     data-testid="input-peg-ratio"
                   />
@@ -232,6 +247,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Enterprise Value to EBITDA - company valuation metric"
                     {...register("evEbitda", { valueAsNumber: true })}
                     data-testid="input-ev-ebitda"
                   />
@@ -249,6 +265,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Year-over-year revenue growth rate"
                     {...register("revenueGrowth", { valueAsNumber: true })}
                     data-testid="input-revenue-growth"
                   />
@@ -260,6 +277,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Year-over-year earnings per share growth rate"
                     {...register("epsGrowth", { valueAsNumber: true })}
                     data-testid="input-eps-growth"
                   />
@@ -271,6 +289,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     type="number"
                     step="0.01"
                     placeholder="0.00"
+                    title="Net profit as percentage of revenue"
                     {...register("profitMargin", { valueAsNumber: true })}
                     data-testid="input-profit-margin"
                   />
@@ -292,6 +311,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        title="Average P/E ratio for the industry sector"
                         {...register("industryAvgPE", { valueAsNumber: true })}
                         data-testid="input-industry-avg-pe"
                       />
@@ -304,6 +324,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        title="Average P/BV ratio for the industry sector"
                         {...register("industryAvgPBV", { valueAsNumber: true })}
                         data-testid="input-industry-avg-pbv"
                       />
@@ -315,6 +336,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        title="Average ROE for the industry sector"
                         {...register("industryAvgROE", { valueAsNumber: true })}
                         data-testid="input-industry-avg-roe"
                       />
@@ -326,6 +348,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                         type="number"
                         step="0.01"
                         placeholder="0.00"
+                        title="P/E ratio of the overall market index"
                         {...register("marketIndexPE", { valueAsNumber: true })}
                         data-testid="input-market-index-pe"
                       />
