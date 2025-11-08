@@ -6,6 +6,9 @@ import ScoreCard from "@/components/ScoreCard";
 import MetricsGrid from "@/components/MetricsGrid";
 import RatioTable from "@/components/RatioTable";
 import DetailedBreakdown from "@/components/DetailedBreakdown";
+import ScoreBreakdownChart from "@/components/ScoreBreakdownChart";
+import RatioComparisonChart from "@/components/RatioComparisonChart";
+import WeightDistributionChart from "@/components/WeightDistributionChart";
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -183,6 +186,22 @@ export default function Home() {
               <div className="lg:col-span-1">
                 <ScoreCard result={analysisResult} />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+              <ScoreBreakdownChart result={analysisResult} />
+              <RatioComparisonChart 
+                result={analysisResult} 
+                industryData={{
+                  avgPE: 12,
+                  avgPBV: 1.0,
+                  avgROE: 10,
+                }}
+              />
+            </div>
+
+            <div className="mt-8">
+              <WeightDistributionChart result={analysisResult} />
             </div>
           </div>
         )}
