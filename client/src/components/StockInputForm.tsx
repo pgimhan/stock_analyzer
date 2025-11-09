@@ -7,20 +7,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { TrendingUp } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TrendingUp, Sparkles, Info } from "lucide-react";
+import FieldInfo from "./FieldInfo";
+import { fieldDescriptions } from "@/lib/fieldDescriptions";
+import { exampleStockData } from "@/lib/exampleData";
+import AutoFillStock from "./AutoFillStock";
 
 interface StockInputFormProps {
   onAnalyze: (data: StockAnalysis) => void;
 }
 
 export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<StockAnalysis>({
+  const [revenueUnit, setRevenueUnit] = useState(1000000);
+  const [netProfitUnit, setNetProfitUnit] = useState(1000000);
+  const [debtUnit, setDebtUnit] = useState(1000000);
+  const [cashFlowUnit, setCashFlowUnit] = useState(1000000);
+
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<StockAnalysis>({
     resolver: zodResolver(stockAnalysisSchema),
   });
 
+  const loadExample = () => {
+    reset(exampleStockData);
+  };
+
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
+
+  const handleAutoFill = (data: Partial<StockAnalysis>) => {
+    Object.entries(data).forEach(([key, value]) => {
+      setValue(key as keyof StockAnalysis, value);
+    });
+    setIsAutoFilled(true);
+    // Scroll to form
+    setTimeout(() => {
+      document.getElementById('stockName')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   const onSubmit = (data: StockAnalysis) => {
-    console.log('Form submitted successfully:', data);
-    onAnalyze(data);
+    const adjustedData = {
+      ...data,
+      revenue: data.revenue * revenueUnit,
+      netProfit: data.netProfit * netProfitUnit,
+      debt: data.debt * debtUnit,
+      cashFlow: data.cashFlow * cashFlowUnit,
+    };
+    console.log('Form submitted successfully:', adjustedData);
+    onAnalyze(adjustedData);
   };
 
   const onError = (errors: any) => {
@@ -30,13 +64,30 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Stock Data Input
-        </CardTitle>
-        <CardDescription>Enter financial metrics for comprehensive valuation analysis</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Stock Data Input
+            </CardTitle>
+            <CardDescription>Enter financial metrics for comprehensive valuation analysis</CardDescription>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={loadExample} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Load Example
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
+        <AutoFillStock onAutoFill={handleAutoFill} />
+        {isAutoFilled && (
+          <Alert className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              Auto-filled data loaded. Please review and verify all values before analyzing.
+            </AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,7 +96,6 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                 <Input
                   id="stockName"
                   placeholder="e.g., John Keells Holdings"
-                  title="Full name of the company"
                   {...register("stockName")}
                   data-testid="input-stock-name"
                 />
@@ -57,7 +107,6 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                   id="tickerSymbol"
                   placeholder="e.g., JKH"
                   className="font-mono"
-                  title="Stock exchange ticker symbol"
                   {...register("tickerSymbol")}
                   data-testid="input-ticker-symbol"
                 />
@@ -69,39 +118,46 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
               <h3 className="text-sm font-semibold">Price & Earnings</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sharePrice">Share Price *</Label>
+                  <Label htmlFor="sharePrice" className="flex items-center gap-2">
+                    Share Price *
+                    <FieldInfo {...fieldDescriptions.sharePrice} />
+                  </Label>
                   <Input
                     id="sharePrice"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Current market price per share"
                     {...register("sharePrice", { valueAsNumber: true })}
                     data-testid="input-share-price"
                   />
                   {errors.sharePrice && <p className="text-sm text-destructive">{errors.sharePrice.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="epsTTM">EPS (TTM)</Label>
+                  <Label htmlFor="epsTTM" className="flex items-center gap-2">
+                    EPS (TTM) *
+                    <FieldInfo {...fieldDescriptions.epsTTM} />
+                  </Label>
                   <Input
                     id="epsTTM"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Earnings per share for trailing twelve months"
                     {...register("epsTTM", { valueAsNumber: true })}
                     data-testid="input-eps-ttm"
                   />
+                  {errors.epsTTM && <p className="text-sm text-destructive">{errors.epsTTM.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="epsForward">EPS (Forward)</Label>
+                  <Label htmlFor="epsForward" className="flex items-center gap-2">
+                    EPS (Forward) <span className="text-muted-foreground text-xs">(Optional)</span>
+                    <FieldInfo {...fieldDescriptions.epsForward} />
+                  </Label>
                   <Input
                     id="epsForward"
                     type="number"
                     step="0.01"
-                    placeholder="0.00"
-                    title="Projected earnings per share for next year"
-                    {...register("epsForward", { valueAsNumber: true })}
+                    placeholder="Leave blank if unavailable"
+                    {...register("epsForward", { setValueAs: v => v === '' ? undefined : Number(v) })}
                     data-testid="input-eps-forward"
                   />
                 </div>
@@ -112,77 +168,129 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
               <h3 className="text-sm font-semibold">Financials</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="revenue">Revenue *</Label>
-                  <Input
-                    id="revenue"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    title="Total revenue or sales"
-                    {...register("revenue", { valueAsNumber: true })}
-                    data-testid="input-revenue"
-                  />
+                  <Label htmlFor="revenue" className="flex items-center gap-2">
+                    Revenue *
+                    <FieldInfo {...fieldDescriptions.revenue} />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="revenue"
+                      type="number"
+                      step="0.01"
+                      placeholder="185"
+                      {...register("revenue", { valueAsNumber: true })}
+                      data-testid="input-revenue"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={revenueUnit} onChange={(e) => setRevenueUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
                   {errors.revenue && <p className="text-sm text-destructive">{errors.revenue.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="netProfit">Net Profit</Label>
-                  <Input
-                    id="netProfit"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    title="Net profit after all expenses and taxes"
-                    {...register("netProfit", { valueAsNumber: true })}
-                    data-testid="input-net-profit"
-                  />
+                  <Label htmlFor="netProfit" className="flex items-center gap-2">
+                    Net Profit *
+                    <FieldInfo {...fieldDescriptions.netProfit} />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="netProfit"
+                      type="number"
+                      step="0.01"
+                      placeholder="12.5"
+                      {...register("netProfit", { valueAsNumber: true })}
+                      data-testid="input-net-profit"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={netProfitUnit} onChange={(e) => setNetProfitUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
+                  {errors.netProfit && <p className="text-sm text-destructive">{errors.netProfit.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="roe">ROE (%)</Label>
+                  <Label htmlFor="roe" className="flex items-center gap-2">
+                    ROE (%) *
+                    <FieldInfo {...fieldDescriptions.roe} />
+                  </Label>
                   <Input
                     id="roe"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Return on Equity - profitability relative to shareholder equity"
                     {...register("roe", { valueAsNumber: true })}
                     data-testid="input-roe"
                   />
+                  {errors.roe && <p className="text-sm text-destructive">{errors.roe.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="roa">ROA (%)</Label>
+                  <Label htmlFor="roa" className="flex items-center gap-2">
+                    ROA (%) *
+                    <FieldInfo {...fieldDescriptions.roa} />
+                  </Label>
                   <Input
                     id="roa"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Return on Assets - how efficiently assets generate profit"
                     {...register("roa", { valueAsNumber: true })}
                     data-testid="input-roa"
                   />
+                  {errors.roa && <p className="text-sm text-destructive">{errors.roa.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="debt">Debt *</Label>
-                  <Input
-                    id="debt"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    title="Total debt obligations"
-                    {...register("debt", { valueAsNumber: true })}
-                    data-testid="input-debt"
-                  />
+                  <Label htmlFor="debt" className="flex items-center gap-2">
+                    Debt *
+                    <FieldInfo {...fieldDescriptions.debt} />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="debt"
+                      type="number"
+                      step="0.01"
+                      placeholder="45"
+                      {...register("debt", { valueAsNumber: true })}
+                      data-testid="input-debt"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={debtUnit} onChange={(e) => setDebtUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cashFlow">Cash Flow</Label>
-                  <Input
-                    id="cashFlow"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    title="Operating cash flow from business activities"
-                    {...register("cashFlow", { valueAsNumber: true })}
-                    data-testid="input-cash-flow"
-                  />
+                  <Label htmlFor="cashFlow" className="flex items-center gap-2">
+                    Cash Flow *
+                    <FieldInfo {...fieldDescriptions.cashFlow} />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cashFlow"
+                      type="number"
+                      step="0.01"
+                      placeholder="18"
+                      {...register("cashFlow", { valueAsNumber: true })}
+                      data-testid="input-cash-flow"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={cashFlowUnit} onChange={(e) => setCashFlowUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
+                  {errors.cashFlow && <p className="text-sm text-destructive">{errors.cashFlow.message}</p>}
                 </div>
               </div>
             </div>
@@ -191,63 +299,73 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
               <h3 className="text-sm font-semibold">Market Ratios</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="peRatio">P/E Ratio *</Label>
+                  <Label htmlFor="peRatio" className="flex items-center gap-2">
+                    P/E Ratio *
+                    <FieldInfo {...fieldDescriptions.peRatio} />
+                  </Label>
                   <Input
                     id="peRatio"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Price-to-Earnings ratio - stock price relative to earnings"
                     {...register("peRatio", { valueAsNumber: true })}
                     data-testid="input-pe-ratio"
                   />
                   {errors.peRatio && <p className="text-sm text-destructive">{errors.peRatio.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pbvRatio">P/BV Ratio *</Label>
+                  <Label htmlFor="pbvRatio" className="flex items-center gap-2">
+                    P/BV Ratio *
+                    <FieldInfo {...fieldDescriptions.pbvRatio} />
+                  </Label>
                   <Input
                     id="pbvRatio"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Price-to-Book Value ratio - market value vs book value"
                     {...register("pbvRatio", { valueAsNumber: true })}
                     data-testid="input-pbv-ratio"
                   />
                   {errors.pbvRatio && <p className="text-sm text-destructive">{errors.pbvRatio.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dividendYield">Dividend Yield (%) *</Label>
+                  <Label htmlFor="dividendYield" className="flex items-center gap-2">
+                    Dividend Yield (%) *
+                    <FieldInfo {...fieldDescriptions.dividendYield} />
+                  </Label>
                   <Input
                     id="dividendYield"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Annual dividend as percentage of stock price"
                     {...register("dividendYield", { valueAsNumber: true })}
                     data-testid="input-dividend-yield"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pegRatio">PEG Ratio *</Label>
+                  <Label htmlFor="pegRatio" className="flex items-center gap-2">
+                    PEG Ratio *
+                    <FieldInfo {...fieldDescriptions.pegRatio} />
+                  </Label>
                   <Input
                     id="pegRatio"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Price/Earnings to Growth ratio - P/E adjusted for growth"
                     {...register("pegRatio", { valueAsNumber: true })}
                     data-testid="input-peg-ratio"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="evEbitda">EV/EBITDA *</Label>
+                  <Label htmlFor="evEbitda" className="flex items-center gap-2">
+                    EV/EBITDA *
+                    <FieldInfo {...fieldDescriptions.evEbitda} />
+                  </Label>
                   <Input
                     id="evEbitda"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Enterprise Value to EBITDA - company valuation metric"
                     {...register("evEbitda", { valueAsNumber: true })}
                     data-testid="input-ev-ebitda"
                   />
@@ -259,40 +377,49 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
               <h3 className="text-sm font-semibold">Growth Metrics</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="revenueGrowth">Revenue Growth (%)</Label>
+                  <Label htmlFor="revenueGrowth" className="flex items-center gap-2">
+                    Revenue Growth (%) *
+                    <FieldInfo {...fieldDescriptions.revenueGrowth} />
+                  </Label>
                   <Input
                     id="revenueGrowth"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Year-over-year revenue growth rate"
                     {...register("revenueGrowth", { valueAsNumber: true })}
                     data-testid="input-revenue-growth"
                   />
+                  {errors.revenueGrowth && <p className="text-sm text-destructive">{errors.revenueGrowth.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="epsGrowth">EPS Growth (%)</Label>
+                  <Label htmlFor="epsGrowth" className="flex items-center gap-2">
+                    EPS Growth (%) *
+                    <FieldInfo {...fieldDescriptions.epsGrowth} />
+                  </Label>
                   <Input
                     id="epsGrowth"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Year-over-year earnings per share growth rate"
                     {...register("epsGrowth", { valueAsNumber: true })}
                     data-testid="input-eps-growth"
                   />
+                  {errors.epsGrowth && <p className="text-sm text-destructive">{errors.epsGrowth.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="profitMargin">Profit Margin (%)</Label>
+                  <Label htmlFor="profitMargin" className="flex items-center gap-2">
+                    Profit Margin (%) *
+                    <FieldInfo {...fieldDescriptions.profitMargin} />
+                  </Label>
                   <Input
                     id="profitMargin"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    title="Net profit as percentage of revenue"
                     {...register("profitMargin", { valueAsNumber: true })}
                     data-testid="input-profit-margin"
                   />
+                  {errors.profitMargin && <p className="text-sm text-destructive">{errors.profitMargin.message}</p>}
                 </div>
               </div>
             </div>
@@ -305,51 +432,60 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                 <AccordionContent className="px-4 pb-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                     <div className="space-y-2">
-                      <Label htmlFor="industryAvgPE">Industry Avg P/E *</Label>
+                      <Label htmlFor="industryAvgPE" className="flex items-center gap-2">
+                        Industry Avg P/E *
+                        <FieldInfo {...fieldDescriptions.industryAvgPE} />
+                      </Label>
                       <Input
                         id="industryAvgPE"
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        title="Average P/E ratio for the industry sector"
                         {...register("industryAvgPE", { valueAsNumber: true })}
                         data-testid="input-industry-avg-pe"
                       />
                       {errors.industryAvgPE && <p className="text-sm text-destructive">{errors.industryAvgPE.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="industryAvgPBV">Industry Avg P/BV *</Label>
+                      <Label htmlFor="industryAvgPBV" className="flex items-center gap-2">
+                        Industry Avg P/BV *
+                        <FieldInfo {...fieldDescriptions.industryAvgPBV} />
+                      </Label>
                       <Input
                         id="industryAvgPBV"
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        title="Average P/BV ratio for the industry sector"
                         {...register("industryAvgPBV", { valueAsNumber: true })}
                         data-testid="input-industry-avg-pbv"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="industryAvgROE">Industry Avg ROE (%)</Label>
+                      <Label htmlFor="industryAvgROE" className="flex items-center gap-2">
+                        Industry Avg ROE (%) *
+                        <FieldInfo {...fieldDescriptions.industryAvgROE} />
+                      </Label>
                       <Input
                         id="industryAvgROE"
                         type="number"
                         step="0.01"
                         placeholder="0.00"
-                        title="Average ROE for the industry sector"
                         {...register("industryAvgROE", { valueAsNumber: true })}
                         data-testid="input-industry-avg-roe"
                       />
+                      {errors.industryAvgROE && <p className="text-sm text-destructive">{errors.industryAvgROE.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="marketIndexPE">Market Index P/E</Label>
+                      <Label htmlFor="marketIndexPE" className="flex items-center gap-2">
+                        Market Index P/E <span className="text-muted-foreground text-xs">(Optional)</span>
+                        <FieldInfo {...fieldDescriptions.marketIndexPE} />
+                      </Label>
                       <Input
                         id="marketIndexPE"
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
-                        title="P/E ratio of the overall market index"
-                        {...register("marketIndexPE", { valueAsNumber: true })}
+                        placeholder="Defaults to 15"
+                        {...register("marketIndexPE", { setValueAs: v => v === '' ? undefined : Number(v) })}
                         data-testid="input-market-index-pe"
                       />
                     </div>

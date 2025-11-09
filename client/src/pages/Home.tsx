@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { type StockAnalysis, type AnalysisResult } from "@shared/schema";
+import { saveAnalysis, getAnalyses, deleteAnalysis } from "@/lib/localStorage";
 import Header from "@/components/Header";
 import StockInputForm from "@/components/StockInputForm";
+import { Button } from "@/components/ui/button";
+import { History, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import ReportGenerator from "@/components/ReportGenerator";
 import ScoreCard from "@/components/ScoreCard";
 import MetricsGrid from "@/components/MetricsGrid";
 import RatioTable from "@/components/RatioTable";
@@ -9,11 +13,24 @@ import DetailedBreakdown from "@/components/DetailedBreakdown";
 import ScoreBreakdownChart from "@/components/ScoreBreakdownChart";
 import RatioComparisonChart from "@/components/RatioComparisonChart";
 import WeightDistributionChart from "@/components/WeightDistributionChart";
+import AIInsights from "@/components/AIInsights";
+import RiskAssessment from "@/components/RiskAssessment";
+import AIValuation from "@/components/AIValuation";
+import CompanySnapshot from "@/components/CompanySnapshot";
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [savedAnalyses, setSavedAnalyses] = useState<any[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    setSavedAnalyses(getAnalyses());
+  }, []);
 
   const calculateAnalysis = (data: StockAnalysis): AnalysisResult => {
+    // Use forward EPS if available, otherwise use TTM
+    const effectiveEPS = data.epsForward || data.epsTTM;
+    
     const peScore = data.peRatio < data.industryAvgPE ? 5 : data.peRatio < data.industryAvgPE * 1.2 ? 4 : data.peRatio < data.industryAvgPE * 1.5 ? 3 : data.peRatio < data.industryAvgPE * 2 ? 2 : 1;
     
     const pbvScore = data.pbvRatio < 1 ? 5 : data.pbvRatio < 1.5 ? 4 : data.pbvRatio < 2 ? 3 : data.pbvRatio < 2.5 ? 2 : 1;
@@ -132,10 +149,27 @@ export default function Home() {
     };
   };
 
+  const [inputData, setInputData] = useState<StockAnalysis | null>(null);
+
   const handleAnalyze = (data: StockAnalysis) => {
     const result = calculateAnalysis(data);
     setAnalysisResult(result);
+    setInputData(data);
+    saveAnalysis(data, result);
+    setSavedAnalyses(getAnalyses());
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const loadSavedAnalysis = (analysis: any) => {
+    setAnalysisResult(analysis.result);
+    setInputData(analysis.inputData);
+    setShowHistory(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = (id: string) => {
+    deleteAnalysis(id);
+    setSavedAnalyses(getAnalyses());
   };
 
   return (
@@ -143,13 +177,51 @@ export default function Home() {
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {!analysisResult ? (
+        {showHistory ? (
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Saved Analyses</h2>
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(false)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
+            {savedAnalyses.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No saved analyses yet</p>
+            ) : (
+              <div className="space-y-3">
+                {savedAnalyses.map((analysis) => (
+                  <div key={analysis.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors flex items-center justify-between gap-4">
+                    <div onClick={() => loadSavedAnalysis(analysis)} className="flex-1 cursor-pointer">
+                      <div className="font-semibold">{analysis.inputData.stockName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {analysis.inputData.tickerSymbol} • {new Date(analysis.timestamp).toLocaleDateString()}
+                      </div>
+                      <div className="text-sm mt-1">
+                        Score: <span className="font-semibold">{analysis.result.overallScore.toFixed(2)}</span> • {analysis.result.recommendation}
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(analysis.id); }} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : !analysisResult ? (
           <div className="max-w-4xl mx-auto">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold mb-2">Professional Stock Valuation</h2>
               <p className="text-muted-foreground">
                 Analyze stocks using fundamental ratios and comprehensive scoring methodology
               </p>
+              {savedAnalyses.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="mt-4 gap-2">
+                  <History className="h-4 w-4" />
+                  View {savedAnalyses.length} saved analysis{savedAnalyses.length !== 1 ? 'es' : ''}
+                </Button>
+              )}
             </div>
             <StockInputForm onAnalyze={handleAnalyze} />
           </div>
@@ -160,13 +232,23 @@ export default function Home() {
                 <h2 className="text-3xl font-bold">{analysisResult.stockName}</h2>
                 <p className="text-muted-foreground font-mono">{analysisResult.tickerSymbol}</p>
               </div>
-              <button
-                onClick={() => setAnalysisResult(null)}
-                className="text-sm text-primary hover:underline"
-                data-testid="button-new-analysis"
-              >
-                New Analysis
-              </button>
+              <div className="flex gap-2">
+                <ReportGenerator result={analysisResult} inputData={inputData!} />
+                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="gap-2">
+                  <History className="h-4 w-4" />
+                  History
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setAnalysisResult(null)}
+                  className="gap-2"
+                  data-testid="button-new-analysis"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Analysis
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -180,7 +262,7 @@ export default function Home() {
                     avgROE: 10,
                   }}
                 />
-                <DetailedBreakdown result={analysisResult} />
+                <DetailedBreakdown result={analysisResult} inputData={inputData} />
               </div>
               
               <div className="lg:col-span-1">
@@ -200,8 +282,15 @@ export default function Home() {
               />
             </div>
 
-            <div className="mt-8">
+            <div className="space-y-8 mt-8">
+              <CompanySnapshot result={analysisResult} inputData={inputData!} />
+              <AIValuation result={analysisResult} inputData={inputData!} />
               <WeightDistributionChart result={analysisResult} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <RiskAssessment result={analysisResult} inputData={inputData!} />
+                <AIInsights result={analysisResult} inputData={inputData!} />
+              </div>
             </div>
           </div>
         )}

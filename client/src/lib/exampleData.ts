@@ -1,0 +1,27 @@
+import type { StockAnalysis } from "@shared/schema";
+
+export const exampleStockData: StockAnalysis = {
+  stockName: "John Keells Holdings",
+  tickerSymbol: "JKH",
+  sharePrice: 125.50,
+  epsTTM: 8.75,
+  epsForward: 9.20,
+  revenue: 185000000,
+  netProfit: 12500000,
+  roe: 14.5,
+  roa: 6.8,
+  debt: 45000000,
+  cashFlow: 18000000,
+  peRatio: 14.34,
+  pbvRatio: 1.85,
+  dividendYield: 3.2,
+  pegRatio: 1.15,
+  evEbitda: 8.5,
+  revenueGrowth: 12.5,
+  epsGrowth: 8.3,
+  profitMargin: 6.75,
+  industryAvgPE: 16.5,
+  industryAvgPBV: 2.1,
+  industryAvgROE: 12.0,
+  marketIndexPE: 18.2,
+};
