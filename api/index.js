@@ -1,1 +1,0 @@
-import '../dist/serverless.js';
