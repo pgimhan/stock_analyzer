@@ -27,6 +27,15 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<StockAnalysis>({
     resolver: zodResolver(stockAnalysisSchema),
   });
+  
+  // Check for extracted financial data on mount
+  useState(() => {
+    const extractedData = (window as any).extractedFinancialData;
+    if (extractedData) {
+      handleAutoFill(extractedData);
+      (window as any).extractedFinancialData = null;
+    }
+  });
 
   const loadExample = () => {
     reset(exampleStockData);

@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import StockInputForm from "@/components/StockInputForm";
 import { Button } from "@/components/ui/button";
 import { History, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ReportGenerator from "@/components/ReportGenerator";
 import ScoreCard from "@/components/ScoreCard";
 import MetricsGrid from "@/components/MetricsGrid";
@@ -16,7 +17,7 @@ import WeightDistributionChart from "@/components/WeightDistributionChart";
 import AIInsights from "@/components/AIInsights";
 import RiskAssessment from "@/components/RiskAssessment";
 import AIValuation from "@/components/AIValuation";
-import CompanySnapshot from "@/components/CompanySnapshot";
+import FinancialReportUpload from "@/components/FinancialReportUpload";
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -210,7 +211,7 @@ export default function Home() {
             )}
           </div>
         ) : !analysisResult ? (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto space-y-8">
             <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold mb-2">Professional Stock Valuation</h2>
               <p className="text-muted-foreground">
@@ -223,6 +224,9 @@ export default function Home() {
                 </Button>
               )}
             </div>
+            <FinancialReportUpload onDataExtracted={(data) => {
+              console.log('Extracted data:', data);
+            }} />
             <StockInputForm onAnalyze={handleAnalyze} />
           </div>
         ) : (
@@ -283,7 +287,6 @@ export default function Home() {
             </div>
 
             <div className="space-y-8 mt-8">
-              <CompanySnapshot result={analysisResult} inputData={inputData!} />
               <AIValuation result={analysisResult} inputData={inputData!} />
               <WeightDistributionChart result={analysisResult} />
               
