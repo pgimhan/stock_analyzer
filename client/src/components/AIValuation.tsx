@@ -104,6 +104,14 @@ Then explain in 2-3 paragraphs:
     if (localStorage.getItem("openai_api_key")) {
       generateAIValuation();
     }
+
+    const handleApiKeyUpdate = () => {
+      if (localStorage.getItem("openai_api_key")) {
+        generateAIValuation();
+      }
+    };
+    window.addEventListener("apiKeyUpdated", handleApiKeyUpdate);
+    return () => window.removeEventListener("apiKeyUpdated", handleApiKeyUpdate);
   }, []);
 
   const getVerdictColor = (verdict: string) => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,8 +18,18 @@ export default function AIInsights({ result, inputData }: AIInsightsProps) {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const saveApiKey = () => {
-    localStorage.setItem("openai_api_key", apiKey);
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setApiKey(localStorage.getItem("openai_api_key") || "");
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    localStorage.setItem("openai_api_key", value);
+    window.dispatchEvent(new Event("apiKeyUpdated"));
   };
 
   const askAI = async () => {
@@ -99,7 +109,7 @@ Provide a clear, concise answer in 2-3 paragraphs.`;
         <CardDescription>Ask ChatGPT about this stock analysis</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!localStorage.getItem("openai_api_key") && (
+        {!apiKey && (
           <div className="space-y-2">
             <Label htmlFor="apiKey">OpenAI API Key</Label>
             <div className="flex gap-2">
@@ -108,9 +118,8 @@ Provide a clear, concise answer in 2-3 paragraphs.`;
                 type="password"
                 placeholder="sk-..."
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
               />
-              <Button onClick={saveApiKey} variant="outline">Save</Button>
             </div>
             <p className="text-xs text-muted-foreground">
               Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" className="underline">OpenAI</a>

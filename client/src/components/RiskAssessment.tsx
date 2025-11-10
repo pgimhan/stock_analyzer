@@ -115,6 +115,14 @@ Prioritize the most critical risks first. Focus on: debt levels, cash flow issue
     if (localStorage.getItem("openai_api_key")) {
       assessRisks();
     }
+
+    const handleApiKeyUpdate = () => {
+      if (localStorage.getItem("openai_api_key")) {
+        assessRisks();
+      }
+    };
+    window.addEventListener("apiKeyUpdated", handleApiKeyUpdate);
+    return () => window.removeEventListener("apiKeyUpdated", handleApiKeyUpdate);
   }, []);
 
   const getRiskColor = (level: "Low" | "Medium" | "High") => {
