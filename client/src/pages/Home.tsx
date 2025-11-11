@@ -4,7 +4,7 @@ import { saveAnalysis, getAnalyses, deleteAnalysis } from "@/lib/localStorage";
 import Header from "@/components/Header";
 import StockInputForm from "@/components/StockInputForm";
 import { Button } from "@/components/ui/button";
-import { History, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { History, Plus, ArrowLeft, Trash2, Edit } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ReportGenerator from "@/components/ReportGenerator";
 import ScoreCard from "@/components/ScoreCard";
@@ -23,6 +23,7 @@ export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [savedAnalyses, setSavedAnalyses] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [editingData, setEditingData] = useState<StockAnalysis | null>(null);
 
   useEffect(() => {
     setSavedAnalyses(getAnalyses());
@@ -214,6 +215,13 @@ export default function Home() {
     setSavedAnalyses(getAnalyses());
   };
 
+  const handleEdit = (analysis: any) => {
+    setEditingData(analysis.inputData);
+    setAnalysisResult(null);
+    setShowHistory(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -243,9 +251,14 @@ export default function Home() {
                         Score: <span className="font-semibold">{analysis.result.overallScore.toFixed(2)}</span> • {analysis.result.recommendation}
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(analysis.id); }} className="text-destructive hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(analysis); }} title="Edit">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(analysis.id); }} className="text-destructive hover:text-destructive" title="Delete">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -268,7 +281,7 @@ export default function Home() {
             <FinancialReportUpload onDataExtracted={(data) => {
               console.log('Extracted data:', data);
             }} />
-            <StockInputForm onAnalyze={handleAnalyze} />
+            <StockInputForm onAnalyze={handleAnalyze} initialData={editingData} />
           </div>
         ) : (
           <div className="space-y-8">

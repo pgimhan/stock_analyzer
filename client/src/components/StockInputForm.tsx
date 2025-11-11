@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { stockAnalysisSchema, type StockAnalysis } from "@shared/schema";
@@ -16,9 +16,10 @@ import AutoFillStock from "./AutoFillStock";
 
 interface StockInputFormProps {
   onAnalyze: (data: StockAnalysis) => void;
+  initialData?: StockAnalysis | null;
 }
 
-export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
+export default function StockInputForm({ onAnalyze, initialData }: StockInputFormProps) {
   const [revenueUnit, setRevenueUnit] = useState(1000000);
   const [netProfitUnit, setNetProfitUnit] = useState(1000000);
   const [totalAssetsUnit, setTotalAssetsUnit] = useState(1000000);
@@ -28,7 +29,14 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<StockAnalysis>({
     resolver: zodResolver(stockAnalysisSchema),
+    defaultValues: initialData || undefined,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData, reset]);
   
   // Check for extracted financial data on mount
   useState(() => {
