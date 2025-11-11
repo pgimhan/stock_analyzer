@@ -21,7 +21,9 @@ interface StockInputFormProps {
 export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
   const [revenueUnit, setRevenueUnit] = useState(1000000);
   const [netProfitUnit, setNetProfitUnit] = useState(1000000);
+  const [totalAssetsUnit, setTotalAssetsUnit] = useState(1000000);
   const [debtUnit, setDebtUnit] = useState(1000000);
+  const [equityUnit, setEquityUnit] = useState(1000000);
   const [cashFlowUnit, setCashFlowUnit] = useState(1000000);
 
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<StockAnalysis>({
@@ -59,7 +61,9 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
       ...data,
       revenue: data.revenue * revenueUnit,
       netProfit: data.netProfit * netProfitUnit,
+      totalAssets: data.totalAssets * totalAssetsUnit,
       debt: data.debt * debtUnit,
+      equity: data.equity * equityUnit,
       cashFlow: data.cashFlow * cashFlowUnit,
     };
     console.log('Form submitted successfully:', adjustedData);
@@ -175,7 +179,7 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
 
             <div className="space-y-3">
               <h3 className="text-sm font-semibold">Financials</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="revenue" className="flex items-center gap-2">
                     Revenue *
@@ -225,34 +229,28 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                   {errors.netProfit && <p className="text-sm text-destructive">{errors.netProfit.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="roe" className="flex items-center gap-2">
-                    ROE (%) *
-                    <FieldInfo {...fieldDescriptions.roe} />
+                  <Label htmlFor="totalAssets" className="flex items-center gap-2">
+                    Total Assets *
+                    <FieldInfo {...fieldDescriptions.totalAssets} />
                   </Label>
-                  <Input
-                    id="roe"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("roe", { valueAsNumber: true })}
-                    data-testid="input-roe"
-                  />
-                  {errors.roe && <p className="text-sm text-destructive">{errors.roe.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="roa" className="flex items-center gap-2">
-                    ROA (%) *
-                    <FieldInfo {...fieldDescriptions.roa} />
-                  </Label>
-                  <Input
-                    id="roa"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("roa", { valueAsNumber: true })}
-                    data-testid="input-roa"
-                  />
-                  {errors.roa && <p className="text-sm text-destructive">{errors.roa.message}</p>}
+                  <div className="flex gap-2">
+                    <Input
+                      id="totalAssets"
+                      type="number"
+                      step="0.01"
+                      placeholder="200"
+                      {...register("totalAssets", { valueAsNumber: true })}
+                      data-testid="input-total-assets"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={totalAssetsUnit} onChange={(e) => setTotalAssetsUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
+                  {errors.totalAssets && <p className="text-sm text-destructive">{errors.totalAssets.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="debt" className="flex items-center gap-2">
@@ -276,6 +274,30 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                       <option value="1000000000">B</option>
                     </select>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="equity" className="flex items-center gap-2">
+                    Equity *
+                    <FieldInfo {...fieldDescriptions.equity} />
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="equity"
+                      type="number"
+                      step="0.01"
+                      placeholder="100"
+                      {...register("equity", { valueAsNumber: true })}
+                      data-testid="input-equity"
+                      className="flex-1"
+                    />
+                    <select className="border rounded-md px-3 text-sm bg-background" value={equityUnit} onChange={(e) => setEquityUnit(Number(e.target.value))}>
+                      <option value="1">Units</option>
+                      <option value="1000">K</option>
+                      <option value="1000000">M</option>
+                      <option value="1000000000">B</option>
+                    </select>
+                  </div>
+                  {errors.equity && <p className="text-sm text-destructive">{errors.equity.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cashFlow" className="flex items-center gap-2">
@@ -414,21 +436,6 @@ export default function StockInputForm({ onAnalyze }: StockInputFormProps) {
                     data-testid="input-eps-growth"
                   />
                   {errors.epsGrowth && <p className="text-sm text-destructive">{errors.epsGrowth.message}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="profitMargin" className="flex items-center gap-2">
-                    Profit Margin (%) *
-                    <FieldInfo {...fieldDescriptions.profitMargin} />
-                  </Label>
-                  <Input
-                    id="profitMargin"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("profitMargin", { valueAsNumber: true })}
-                    data-testid="input-profit-margin"
-                  />
-                  {errors.profitMargin && <p className="text-sm text-destructive">{errors.profitMargin.message}</p>}
                 </div>
               </div>
             </div>

@@ -29,23 +29,46 @@ export default function Home() {
   }, []);
 
   const calculateAnalysis = (data: StockAnalysis): AnalysisResult => {
+    console.log('=== STOCK ANALYSIS CALCULATION START ===');
+    console.log('Input Data:', data);
+    
+    // Calculate ratios from raw data
+    const roe = (data.netProfit / data.equity) * 100;
+    console.log(`ROE Calculation: (${data.netProfit} / ${data.equity}) * 100 = ${roe.toFixed(2)}%`);
+    
+    const roa = (data.netProfit / data.totalAssets) * 100;
+    console.log(`ROA Calculation: (${data.netProfit} / ${data.totalAssets}) * 100 = ${roa.toFixed(2)}%`);
+    
+    const profitMargin = (data.netProfit / data.revenue) * 100;
+    console.log(`Profit Margin: (${data.netProfit} / ${data.revenue}) * 100 = ${profitMargin.toFixed(2)}%`);
+    
     // Use forward EPS if available, otherwise use TTM
     const effectiveEPS = data.epsForward || data.epsTTM;
+    console.log(`Effective EPS: ${effectiveEPS} (Forward: ${data.epsForward}, TTM: ${data.epsTTM})`);
     
     const peScore = data.peRatio < data.industryAvgPE ? 5 : data.peRatio < data.industryAvgPE * 1.2 ? 4 : data.peRatio < data.industryAvgPE * 1.5 ? 3 : data.peRatio < data.industryAvgPE * 2 ? 2 : 1;
+    console.log(`P/E Score: ${peScore} (P/E: ${data.peRatio} vs Industry: ${data.industryAvgPE})`);
     
     const pbvScore = data.pbvRatio < 1 ? 5 : data.pbvRatio < 1.5 ? 4 : data.pbvRatio < 2 ? 3 : data.pbvRatio < 2.5 ? 2 : 1;
+    console.log(`P/BV Score: ${pbvScore} (P/BV: ${data.pbvRatio})`);
     
-    const roeScore = data.roe > 20 ? 5 : data.roe > 15 ? 4 : data.roe > 10 ? 3 : data.roe > 5 ? 2 : 1;
+    const roeScore = roe > 20 ? 5 : roe > 15 ? 4 : roe > 10 ? 3 : roe > 5 ? 2 : 1;
+    console.log(`ROE Score: ${roeScore} (ROE: ${roe.toFixed(2)}%)`);
     
     const epsGrowthScore = data.epsGrowth > 20 ? 5 : data.epsGrowth > 15 ? 4 : data.epsGrowth > 10 ? 3 : data.epsGrowth > 5 ? 2 : 1;
+    console.log(`EPS Growth Score: ${epsGrowthScore} (Growth: ${data.epsGrowth}%)`);
     
-    const debtToEquity = data.debt / (data.revenue * 0.2);
+    const debtToEquity = data.debt / data.equity;
+    console.log(`Debt-to-Equity: ${data.debt} / ${data.equity} = ${debtToEquity.toFixed(2)}`);
+    
     const debtScore = debtToEquity < 0.3 ? 5 : debtToEquity < 0.5 ? 4 : debtToEquity < 0.7 ? 3 : debtToEquity < 1 ? 2 : 1;
+    console.log(`Debt Score: ${debtScore} (D/E: ${debtToEquity.toFixed(2)})`);
     
     const cashFlowScore = data.cashFlow > 0 ? (data.cashFlow > data.netProfit ? 5 : 4) : 2;
+    console.log(`Cash Flow Score: ${cashFlowScore} (CF: ${data.cashFlow} vs NP: ${data.netProfit})`);
     
     const dividendScore = data.dividendYield > 5 ? 5 : data.dividendYield > 4 ? 4 : data.dividendYield > 3 ? 3 : data.dividendYield > 2 ? 2 : 1;
+    console.log(`Dividend Score: ${dividendScore} (Yield: ${data.dividendYield}%)`);
 
     const weights = {
       peVsIndustry: 0.20,
@@ -65,6 +88,16 @@ export default function Home() {
       debtScore * weights.debtScore +
       cashFlowScore * weights.cashFlowScore +
       dividendScore * weights.dividendScore;
+    
+    console.log('\n=== WEIGHTED SCORE CALCULATION ===');
+    console.log(`P/E: ${peScore} × ${weights.peVsIndustry} = ${(peScore * weights.peVsIndustry).toFixed(2)}`);
+    console.log(`P/BV: ${pbvScore} × ${weights.pbvVsBook} = ${(pbvScore * weights.pbvVsBook).toFixed(2)}`);
+    console.log(`ROE: ${roeScore} × ${weights.roeScore} = ${(roeScore * weights.roeScore).toFixed(2)}`);
+    console.log(`EPS Growth: ${epsGrowthScore} × ${weights.epsGrowthScore} = ${(epsGrowthScore * weights.epsGrowthScore).toFixed(2)}`);
+    console.log(`Debt: ${debtScore} × ${weights.debtScore} = ${(debtScore * weights.debtScore).toFixed(2)}`);
+    console.log(`Cash Flow: ${cashFlowScore} × ${weights.cashFlowScore} = ${(cashFlowScore * weights.cashFlowScore).toFixed(2)}`);
+    console.log(`Dividend: ${dividendScore} × ${weights.dividendScore} = ${(dividendScore * weights.dividendScore).toFixed(2)}`);
+    console.log(`Overall Score: ${overallScore.toFixed(2)} / 5.0`);
 
     let verdict: "Undervalued" | "Fairly Valued" | "Overvalued";
     let recommendation: "Strong Buy" | "Buy" | "Hold" | "Avoid" | "Sell";
@@ -93,8 +126,8 @@ export default function Home() {
     if (peScore >= 4) strengths.push("P/E ratio is attractive compared to industry");
     else if (peScore <= 2) concerns.push(`P/E ratio significantly higher than industry average (${data.peRatio.toFixed(1)}× vs ${data.industryAvgPE.toFixed(1)}×)`);
 
-    if (roeScore >= 4) strengths.push(`Strong ROE of ${data.roe.toFixed(1)}% indicates excellent profitability`);
-    else if (roeScore <= 2) concerns.push(`Low ROE of ${data.roe.toFixed(1)}% suggests poor profitability`);
+    if (roeScore >= 4) strengths.push(`Strong ROE of ${roe.toFixed(1)}% indicates excellent profitability`);
+    else if (roeScore <= 2) concerns.push(`Low ROE of ${roe.toFixed(1)}% suggests poor profitability`);
 
     if (epsGrowthScore >= 4) strengths.push(`Impressive EPS growth of ${data.epsGrowth.toFixed(1)}%`);
     else if (epsGrowthScore <= 2) concerns.push("Weak earnings growth trajectory");
@@ -113,7 +146,15 @@ export default function Home() {
 
     const peVsIndustry = ((data.peRatio - data.industryAvgPE) / data.industryAvgPE) * 100;
     const pbvVsIndustry = ((data.pbvRatio - data.industryAvgPBV) / data.industryAvgPBV) * 100;
-    const roeVsIndustry = ((data.roe - data.industryAvgROE) / data.industryAvgROE) * 100;
+    const roeVsIndustry = ((roe - data.industryAvgROE) / data.industryAvgROE) * 100;
+    
+    console.log('\n=== INDUSTRY COMPARISONS ===');
+    console.log(`P/E vs Industry: ${peVsIndustry.toFixed(2)}%`);
+    console.log(`P/BV vs Industry: ${pbvVsIndustry.toFixed(2)}%`);
+    console.log(`ROE vs Industry: ${roeVsIndustry.toFixed(2)}%`);
+    console.log(`\nVerdict: ${verdict}`);
+    console.log(`Recommendation: ${recommendation}`);
+    console.log('=== CALCULATION END ===\n');
 
     return {
       stockName: data.stockName,
@@ -134,7 +175,7 @@ export default function Home() {
       ratios: {
         pe: data.peRatio,
         pbv: data.pbvRatio,
-        roe: data.roe,
+        roe,
         peg: data.pegRatio,
         evEbitda: data.evEbitda,
         dividendYield: data.dividendYield,

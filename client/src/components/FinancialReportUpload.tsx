@@ -6,24 +6,10 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
-interface ExtractedData {
-  companyName?: string;
-  reportPeriod?: string;
-  periodStart?: string;
-  periodEnd?: string;
-  revenue?: number;
-  netIncome?: number;
-  totalAssets?: number;
-  totalEquity?: number;
-  eps?: number;
-}
+import type { ExtractedFinancialData, CalculatedRatios } from "@shared/financialSchema";
 
-interface CalculatedRatios {
-  roe?: number;
-  roa?: number;
-  currentRatio?: number;
-  profitMargin?: number;
-}
+type ExtractedData = ExtractedFinancialData;
+type Calculated = CalculatedRatios;
 
 interface CompanySnapshot {
   industry: string;
@@ -39,7 +25,7 @@ interface CompanySnapshot {
 
 interface FinancialReportResult {
   extracted: ExtractedData;
-  calculated: CalculatedRatios;
+  calculated: Calculated;
   missing: string[];
   snapshot?: CompanySnapshot;
 }

@@ -29,25 +29,25 @@ export const fieldDescriptions = {
     goodRange: "Positive and growing year-over-year",
     example: "If Rs. 12.5M remains after all deductions"
   },
-  roe: {
-    title: "ROE (Return on Equity)",
-    description: "Measures how efficiently the company uses shareholder money to generate profits.",
-    formula: "(Net Income ÷ Shareholder Equity) × 100",
-    goodRange: "Above 15% is excellent, 10-15% is good",
-    example: "14.5% means Rs. 14.50 profit per Rs. 100 of equity"
-  },
-  roa: {
-    title: "ROA (Return on Assets)",
-    description: "Shows how efficiently the company uses its total assets to generate profit.",
-    formula: "(Net Income ÷ Total Assets) × 100",
-    goodRange: "Above 5% is good, varies by industry",
-    example: "6.8% means Rs. 6.80 profit per Rs. 100 of assets"
+  totalAssets: {
+    title: "Total Assets",
+    description: "The total value of everything the company owns (cash, property, equipment, inventory, etc.).",
+    formula: "Current Assets + Non-Current Assets",
+    goodRange: "Should be greater than total liabilities",
+    example: "Rs. 200M in total assets"
   },
   debt: {
     title: "Total Debt",
     description: "The total amount of money the company owes to lenders and creditors.",
     goodRange: "Lower is better. Compare with equity and cash flow",
     example: "Rs. 45M in loans and bonds"
+  },
+  equity: {
+    title: "Total Equity",
+    description: "Total shareholder equity (assets minus liabilities). Represents the net worth of the company.",
+    formula: "Total Assets - Total Liabilities",
+    goodRange: "Higher is better. Should be positive and growing",
+    example: "Rs. 100M in shareholder equity"
   },
   cashFlow: {
     title: "Operating Cash Flow",
@@ -104,13 +104,7 @@ export const fieldDescriptions = {
     goodRange: "Above 10% is excellent",
     example: "8.3% means earnings per share grew by 8.3%"
   },
-  profitMargin: {
-    title: "Profit Margin",
-    description: "Shows what percentage of revenue becomes actual profit.",
-    formula: "(Net Profit ÷ Revenue) × 100",
-    goodRange: "Above 10% is good, varies by industry",
-    example: "6.75% means Rs. 6.75 profit from every Rs. 100 revenue"
-  },
+
   industryAvgPE: {
     title: "Industry Average P/E",
     description: "The average P/E ratio of companies in the same industry sector.",
