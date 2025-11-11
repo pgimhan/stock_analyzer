@@ -17,7 +17,7 @@ import WeightDistributionChart from "@/components/WeightDistributionChart";
 import AIInsights from "@/components/AIInsights";
 import RiskAssessment from "@/components/RiskAssessment";
 import AIValuation from "@/components/AIValuation";
-import FinancialReportUpload from "@/components/FinancialReportUpload";
+
 
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -43,9 +43,9 @@ export default function Home() {
     const profitMargin = (data.netProfit / data.revenue) * 100;
     console.log(`Profit Margin: (${data.netProfit} / ${data.revenue}) * 100 = ${profitMargin.toFixed(2)}%`);
     
-    // Use forward EPS if available, otherwise use TTM
-    const effectiveEPS = data.epsForward || data.epsTTM;
-    console.log(`Effective EPS: ${effectiveEPS} (Forward: ${data.epsForward}, TTM: ${data.epsTTM})`);
+    // Calculate PEG ratio from raw data (P/E / EPS Growth)
+    const calculatedPegRatio = data.epsGrowth > 0 ? data.peRatio / data.epsGrowth : 999;
+    console.log(`PEG Ratio: ${calculatedPegRatio === 999 ? 'N/A (negative/zero growth)' : calculatedPegRatio.toFixed(2)} (P/E: ${data.peRatio} / EPS Growth: ${data.epsGrowth}%)`);
     
     const peScore = data.peRatio < data.industryAvgPE ? 5 : data.peRatio < data.industryAvgPE * 1.2 ? 4 : data.peRatio < data.industryAvgPE * 1.5 ? 3 : data.peRatio < data.industryAvgPE * 2 ? 2 : 1;
     console.log(`P/E Score: ${peScore} (P/E: ${data.peRatio} vs Industry: ${data.industryAvgPE})`);
@@ -142,8 +142,8 @@ export default function Home() {
     if (dividendScore <= 2) concerns.push(`Weak dividend yield at ${data.dividendYield.toFixed(1)}%`);
     else if (dividendScore >= 4) strengths.push(`Attractive dividend yield of ${data.dividendYield.toFixed(1)}%`);
 
-    if (data.pegRatio > 2) concerns.push("High PEG ratio indicates overpricing relative to growth");
-    else if (data.pegRatio < 1) strengths.push("Low PEG ratio suggests undervaluation");
+    if (calculatedPegRatio > 2) concerns.push("High PEG ratio indicates overpricing relative to growth");
+    else if (calculatedPegRatio < 1) strengths.push("Low PEG ratio suggests undervaluation");
 
     const peVsIndustry = ((data.peRatio - data.industryAvgPE) / data.industryAvgPE) * 100;
     const pbvVsIndustry = ((data.pbvRatio - data.industryAvgPBV) / data.industryAvgPBV) * 100;
@@ -177,7 +177,7 @@ export default function Home() {
         pe: data.peRatio,
         pbv: data.pbvRatio,
         roe,
-        peg: data.pegRatio,
+        peg: calculatedPegRatio,
         evEbitda: data.evEbitda,
         dividendYield: data.dividendYield,
         debtToEquity,
@@ -278,9 +278,6 @@ export default function Home() {
                 </Button>
               )}
             </div>
-            <FinancialReportUpload onDataExtracted={(data) => {
-              console.log('Extracted data:', data);
-            }} />
             <StockInputForm onAnalyze={handleAnalyze} initialData={editingData} />
           </div>
         ) : (

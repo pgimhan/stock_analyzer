@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, Sparkles, Info } from "lucide-react";
+import { TrendingUp, Sparkles } from "lucide-react";
 import FieldInfo from "./FieldInfo";
 import { fieldDescriptions } from "@/lib/fieldDescriptions";
 import { exampleStockData } from "@/lib/exampleData";
-import AutoFillStock from "./AutoFillStock";
+
 
 interface StockInputFormProps {
   onAnalyze: (data: StockAnalysis) => void;
@@ -38,31 +37,13 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
     }
   }, [initialData, reset]);
   
-  // Check for extracted financial data on mount
-  useState(() => {
-    const extractedData = (window as any).extractedFinancialData;
-    if (extractedData) {
-      handleAutoFill(extractedData);
-      (window as any).extractedFinancialData = null;
-    }
-  });
+
 
   const loadExample = () => {
     reset(exampleStockData);
   };
 
-  const [isAutoFilled, setIsAutoFilled] = useState(false);
 
-  const handleAutoFill = (data: Partial<StockAnalysis>) => {
-    Object.entries(data).forEach(([key, value]) => {
-      setValue(key as keyof StockAnalysis, value);
-    });
-    setIsAutoFilled(true);
-    // Scroll to form
-    setTimeout(() => {
-      document.getElementById('stockName')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-  };
 
   const onSubmit = (data: StockAnalysis) => {
     const adjustedData = {
@@ -100,15 +81,7 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
         </div>
       </CardHeader>
       <CardContent>
-        <AutoFillStock onAutoFill={handleAutoFill} />
-        {isAutoFilled && (
-          <Alert className="mb-4">
-            <Info className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              Auto-filled data loaded. Please review and verify all values before analyzing.
-            </AlertDescription>
-          </Alert>
-        )}
+
         <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -381,20 +354,7 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     data-testid="input-dividend-yield"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pegRatio" className="flex items-center gap-2">
-                    PEG Ratio *
-                    <FieldInfo {...fieldDescriptions.pegRatio} />
-                  </Label>
-                  <Input
-                    id="pegRatio"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...register("pegRatio", { valueAsNumber: true })}
-                    data-testid="input-peg-ratio"
-                  />
-                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="evEbitda" className="flex items-center gap-2">
                     EV/EBITDA *

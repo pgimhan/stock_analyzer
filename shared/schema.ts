@@ -15,7 +15,7 @@ export const stockAnalysisSchema = z.object({
   peRatio: z.number().positive("P/E ratio must be positive"),
   pbvRatio: z.number().positive("P/BV ratio must be positive"),
   dividendYield: z.number().nonnegative("Dividend yield cannot be negative"),
-  pegRatio: z.number().positive("PEG ratio must be positive"),
+
   evEbitda: z.number().positive("EV/EBITDA must be positive"),
   revenueGrowth: z.number({ required_error: "Revenue growth is required" }),
   epsGrowth: z.number({ required_error: "EPS growth is required" }),

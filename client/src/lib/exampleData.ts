@@ -15,7 +15,7 @@ export const exampleStockData: StockAnalysis = {
   peRatio: 14.34,
   pbvRatio: 1.85,
   dividendYield: 3.2,
-  pegRatio: 1.15,
+
   evEbitda: 8.5,
   revenueGrowth: 12.5,
   epsGrowth: 8.3,
