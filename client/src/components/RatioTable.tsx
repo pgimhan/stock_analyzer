@@ -112,9 +112,7 @@ export default function RatioTable({ result, industryData }: RatioTableProps) {
                       {ratio.industry.toFixed(2)}{ratio.unit}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      <span className={diff > 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}>
-                        {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
-                      </span>
+                      {diff > 0 ? "+" : ""}{diff.toFixed(1)}%
                     </TableCell>
                     <TableCell className="text-center">
                       {getStatusBadge(status)}
