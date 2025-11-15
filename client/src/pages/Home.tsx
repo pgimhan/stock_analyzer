@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { type StockAnalysis, type AnalysisResult } from "@shared/schema";
-import { saveAnalysis, getAnalyses, deleteAnalysis } from "@/lib/localStorage";
+import { saveAnalysisToDb, getAnalysesFromDb, deleteAnalysisFromDb } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import StockInputForm from "@/components/StockInputForm";
 import { Button } from "@/components/ui/button";
@@ -20,14 +21,17 @@ import AIValuation from "@/components/AIValuation";
 
 
 export default function Home() {
+  const { user } = useAuth();
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [savedAnalyses, setSavedAnalyses] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [editingData, setEditingData] = useState<StockAnalysis | null>(null);
 
   useEffect(() => {
-    setSavedAnalyses(getAnalyses());
-  }, []);
+    if (user?.id) {
+      getAnalysesFromDb(user.id).then(setSavedAnalyses).catch(console.error);
+    }
+  }, [user?.id]);
 
   const calculateAnalysis = (data: StockAnalysis): AnalysisResult => {
     console.log('=== STOCK ANALYSIS CALCULATION START ===');
@@ -193,12 +197,17 @@ export default function Home() {
 
   const [inputData, setInputData] = useState<StockAnalysis | null>(null);
 
-  const handleAnalyze = (data: StockAnalysis) => {
+  const handleAnalyze = async (data: StockAnalysis) => {
     const result = calculateAnalysis(data);
     setAnalysisResult(result);
     setInputData(data);
-    saveAnalysis(data, result);
-    setSavedAnalyses(getAnalyses());
+    
+    if (user?.id) {
+      await saveAnalysisToDb(user.id, data.stockName, data.tickerSymbol, data, result);
+      const updated = await getAnalysesFromDb(user.id);
+      setSavedAnalyses(updated);
+    }
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -209,9 +218,12 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
-    deleteAnalysis(id);
-    setSavedAnalyses(getAnalyses());
+  const handleDelete = async (id: string) => {
+    await deleteAnalysisFromDb(id);
+    if (user?.id) {
+      const updated = await getAnalysesFromDb(user.id);
+      setSavedAnalyses(updated);
+    }
   };
 
   const handleEdit = (analysis: any) => {

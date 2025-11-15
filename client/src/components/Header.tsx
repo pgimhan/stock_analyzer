@@ -2,6 +2,7 @@ import { BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
+import { UserMenu } from "@/components/UserMenu";
 
 export default function Header() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -33,14 +34,17 @@ export default function Header() {
             <p className="text-xs text-muted-foreground">Professional Analysis Tool</p>
           </div>
         </div>
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          onClick={toggleTheme}
-          data-testid="button-theme-toggle"
-        >
-          {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            onClick={toggleTheme}
+            data-testid="button-theme-toggle"
+          >
+            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+          <UserMenu />
+        </div>
       </div>
     </header>
   );
