@@ -45,14 +45,24 @@ ${result.strengths.map(s => `- ${s}`).join('\n')}
 CONCERNS:
 ${result.concerns.map(c => `- ${c}`).join('\n')}
 
-Create a professional report with these sections:
-1. Executive Summary (2-3 sentences)
-2. Investment Thesis (why buy/avoid)
-3. Financial Analysis (key metrics interpretation)
-4. Risk Factors (main concerns)
-5. Conclusion & Recommendation
+Create a professional report with these EXACT section headers:
 
-Keep it concise and professional.`;
+EXECUTIVE SUMMARY:
+[2-3 sentences overview]
+
+INVESTMENT THESIS:
+[Why buy or avoid - 3-4 sentences]
+
+FINANCIAL HEALTH:
+[Key metrics interpretation - 3-4 sentences]
+
+RISK ASSESSMENT:
+[Main concerns - 2-3 sentences]
+
+FINAL RECOMMENDATION:
+[Clear action and rationale - 2 sentences]
+
+Keep each section concise and use the exact headers shown above.`;
 
     try {
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -91,101 +101,152 @@ Keep it concise and professional.`;
     let y = 20;
 
     // Header
-    pdf.setFontSize(20);
+    pdf.setDrawColor(0, 0, 0);
+    pdf.setLineWidth(0.5);
+    pdf.line(20, y, 190, y);
+    y += 8;
+    pdf.setFontSize(22);
     pdf.setFont("helvetica", "bold");
-    pdf.text("STOCK ANALYSIS REPORT", 105, y, { align: "center" });
-    y += 15;
-
-    // Company Info
-    pdf.setFontSize(12);
+    pdf.text("INVESTMENT ANALYSIS REPORT", 105, y, { align: "center" });
+    y += 10;
+    pdf.setFontSize(16);
     pdf.text(`${result.stockName} (${result.tickerSymbol})`, 105, y, { align: "center" });
-    y += 7;
-    pdf.setFontSize(10);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(`Date: ${new Date().toLocaleDateString()} | Score: ${result.overallScore.toFixed(2)}/5.0`, 105, y, { align: "center" });
-    y += 15;
-
-    // Financial Snapshot
-    pdf.setFontSize(14);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Financial Snapshot", 20, y);
     y += 8;
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
-    const metrics = [
-      `Share Price: LKR ${inputData.sharePrice.toFixed(2)}`,
-      `P/E Ratio: ${result.ratios.pe.toFixed(2)}x | P/BV: ${result.ratios.pbv.toFixed(2)}x`,
-      `ROE: ${result.ratios.roe.toFixed(2)}% | Debt/Equity: ${result.ratios.debtToEquity.toFixed(2)}`,
-      `EPS Growth: ${inputData.epsGrowth.toFixed(2)}% | Revenue Growth: ${inputData.revenueGrowth.toFixed(2)}%`,
-      `Dividend Yield: ${result.ratios.dividendYield.toFixed(2)}%`,
-    ];
-    metrics.forEach(m => { pdf.text(m, 20, y); y += 6; });
+    pdf.text(`Report Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 105, y, { align: "center" });
     y += 5;
+    pdf.line(20, y, 190, y);
+    y += 12;
 
-    // Verdict
-    pdf.setFontSize(14);
+    // Investment Rating
+    pdf.setFontSize(12);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Valuation Verdict", 20, y);
+    pdf.text("INVESTMENT RATING", 20, y);
     y += 8;
-    pdf.setFontSize(10);
+    pdf.setFontSize(11);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`Verdict: ${result.verdict} | Recommendation: ${result.recommendation}`, 20, y);
+    pdf.text(`Overall Score: ${result.overallScore.toFixed(1)}/5.0`, 25, y);
+    y += 6;
+    pdf.text(`Verdict: ${result.verdict}`, 25, y);
+    y += 6;
+    pdf.text(`Recommendation: ${result.recommendation}`, 25, y);
     y += 10;
 
-    // Analysis
-    pdf.setFontSize(14);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("Detailed Analysis", 20, y);
-    y += 8;
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "normal");
-    const lines = pdf.splitTextToSize(content, 170);
-    lines.forEach((line: string) => {
-      if (y > 270) { pdf.addPage(); y = 20; }
-      pdf.text(line, 20, y);
-      y += 5;
-    });
-    y += 5;
-
-    // Strengths
-    if (y > 250) { pdf.addPage(); y = 20; }
+    // Financial Metrics
     pdf.setFontSize(12);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Strengths", 20, y);
-    y += 7;
-    pdf.setFontSize(9);
+    pdf.text("FINANCIAL METRICS", 20, y);
+    y += 8;
+
+    const metrics = [
+      ["Share Price", `LKR ${inputData.sharePrice.toFixed(2)}`],
+      ["Market Capitalization", `LKR ${(inputData.sharePrice * inputData.sharesOutstanding / 1000000).toFixed(0)} Million`],
+      ["Price-to-Earnings Ratio", `${result.ratios.pe.toFixed(2)}x`],
+      ["Industry Average P/E", `${inputData.industryAvgPE.toFixed(2)}x`],
+      ["Price-to-Book Value", `${result.ratios.pbv.toFixed(2)}x`],
+      ["Return on Equity", `${result.ratios.roe.toFixed(2)}%`],
+      ["EPS Growth Rate", `${inputData.epsGrowth.toFixed(2)}%`],
+      ["Revenue Growth Rate", `${inputData.revenueGrowth.toFixed(2)}%`],
+      ["Dividend Yield", `${result.ratios.dividendYield.toFixed(2)}%`],
+      ["Debt-to-Equity Ratio", `${result.ratios.debtToEquity.toFixed(2)}`],
+    ];
+
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    metrics.forEach(([label, value]) => {
+      pdf.text(`${label}:`, 25, y);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(value, 100, y);
+      pdf.setFont("helvetica", "normal");
+      y += 6;
+    });
+    y += 8;
+
+    // Key Strengths
+    if (y > 240) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("KEY STRENGTHS", 20, y);
+    y += 8;
+    pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
     result.strengths.forEach((s, i) => {
-      if (y > 270) { pdf.addPage(); y = 20; }
-      const strengthLines = pdf.splitTextToSize(`${i + 1}. ${s}`, 170);
-      strengthLines.forEach((line: string) => { pdf.text(line, 20, y); y += 5; });
+      const lines = pdf.splitTextToSize(`${i + 1}. ${s}`, 165);
+      lines.forEach((line: string) => {
+        if (y > 280) { pdf.addPage(); y = 20; }
+        pdf.text(line, 25, y);
+        y += 5;
+      });
+      y += 3;
     });
-    y += 5;
+    y += 8;
 
-    // Concerns
-    if (y > 250) { pdf.addPage(); y = 20; }
+    // Risk Factors
+    if (y > 240) { pdf.addPage(); y = 20; }
     pdf.setFontSize(12);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Concerns", 20, y);
-    y += 7;
-    pdf.setFontSize(9);
+    pdf.text("RISK FACTORS", 20, y);
+    y += 8;
+    pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
     result.concerns.forEach((c, i) => {
-      if (y > 270) { pdf.addPage(); y = 20; }
-      const concernLines = pdf.splitTextToSize(`${i + 1}. ${c}`, 170);
-      concernLines.forEach((line: string) => { pdf.text(line, 20, y); y += 5; });
+      const lines = pdf.splitTextToSize(`${i + 1}. ${c}`, 165);
+      lines.forEach((line: string) => {
+        if (y > 280) { pdf.addPage(); y = 20; }
+        pdf.text(line, 25, y);
+        y += 5;
+      });
+      y += 3;
+    });
+    y += 10;
+
+    // Professional Analysis
+    if (y > 230) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("PROFESSIONAL ANALYSIS", 20, y);
+    y += 10;
+
+    const sections = content.split(/\n(?=[A-Z][A-Z ]+:)/g);
+    sections.forEach(section => {
+      const lines = section.trim().split('\n');
+      if (lines.length === 0) return;
+      const header = lines[0];
+      const body = lines.slice(1).join(' ').trim();
+      
+      if (header.includes(':') && body) {
+        if (y > 250) { pdf.addPage(); y = 20; }
+        
+        pdf.setFontSize(11);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(header.replace(':', ''), 20, y);
+        y += 7;
+        
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        const bodyLines = pdf.splitTextToSize(body, 170);
+        bodyLines.forEach((line: string) => {
+          if (y > 280) { pdf.addPage(); y = 20; }
+          pdf.text(line, 20, y);
+          y += 5;
+        });
+        y += 8;
+      }
     });
 
-    // Disclaimer
-    if (y > 250) { pdf.addPage(); y = 20; }
-    y += 10;
+    // Footer
+    if (y > 260) { pdf.addPage(); y = 20; } else { y += 10; }
+    pdf.setLineWidth(0.5);
+    pdf.line(20, y, 190, y);
+    y += 6;
     pdf.setFontSize(8);
-    pdf.setTextColor(100);
-    const disclaimer = "Disclaimer: This report is for informational purposes only and does not constitute financial advice. Please consult with a qualified financial advisor before making investment decisions.";
+    pdf.setFont("helvetica", "italic");
+    const disclaimer = "DISCLAIMER: This report is for informational purposes only and does not constitute investment advice. Past performance is not indicative of future results. Please consult a qualified financial advisor before making investment decisions. All data should be independently verified.";
     const disclaimerLines = pdf.splitTextToSize(disclaimer, 170);
     disclaimerLines.forEach((line: string) => { pdf.text(line, 20, y); y += 4; });
 
-    pdf.save(`${result.tickerSymbol}_Analysis_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    pdf.save(`${result.tickerSymbol}_Investment_Report_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (

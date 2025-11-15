@@ -22,9 +22,9 @@ export default function MetricsGrid({ result }: MetricsGridProps) {
     },
     {
       label: "PEG Ratio",
-      value: result.ratios.peg.toFixed(2) + "×",
-      comparison: result.ratios.peg > 1 ? ((result.ratios.peg - 1) * 100) : -((1 - result.ratios.peg) * 100),
-      trend: result.ratios.peg > 1 ? "up" : result.ratios.peg < 1 ? "down" : "neutral",
+      value: result.ratios.peg !== null ? result.ratios.peg.toFixed(2) + "×" : "N/A",
+      comparison: result.ratios.peg !== null && result.ratios.peg > 1 ? ((result.ratios.peg - 1) * 100) : result.ratios.peg !== null ? -((1 - result.ratios.peg) * 100) : 0,
+      trend: result.ratios.peg !== null ? (result.ratios.peg > 1 ? "up" : result.ratios.peg < 1 ? "down" : "neutral") : "neutral",
     },
     {
       label: "Dividend Yield",

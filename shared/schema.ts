@@ -56,7 +56,7 @@ export interface AnalysisResult {
     pe: number;
     pbv: number;
     roe: number;
-    peg: number;
+    peg: number | null;
     evEbitda: number;
     dividendYield: number;
     debtToEquity: number;

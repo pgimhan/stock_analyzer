@@ -4,7 +4,10 @@ export async function saveAnalysisToDb(userId: string, stockName: string, ticker
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, stockName, tickerSymbol, inputData, result }),
   });
-  if (!res.ok) throw new Error("Failed to save analysis");
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`Failed to save analysis: ${error}`);
+  }
   return res.json();
 }
 

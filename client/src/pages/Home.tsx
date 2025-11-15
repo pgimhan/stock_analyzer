@@ -47,8 +47,9 @@ export default function Home() {
     console.log(`Profit Margin: (${data.netProfit} / ${data.revenue}) * 100 = ${profitMargin.toFixed(2)}%`);
     
     // Calculate PEG ratio from raw data (P/E / EPS Growth)
-    const calculatedPegRatio = data.epsGrowth > 0 ? data.peRatio / data.epsGrowth : 999;
-    console.log(`PEG Ratio: ${calculatedPegRatio === 999 ? 'N/A (negative/zero growth)' : calculatedPegRatio.toFixed(2)} (P/E: ${data.peRatio} / EPS Growth: ${data.epsGrowth}%)`);
+    // Note: Negative or zero growth makes PEG ratio invalid/meaningless
+    const calculatedPegRatio = data.epsGrowth !== 0 ? data.peRatio / data.epsGrowth : null;
+    console.log(`PEG Ratio: ${calculatedPegRatio === null ? 'N/A (zero growth)' : calculatedPegRatio.toFixed(2)} (P/E: ${data.peRatio} / EPS Growth: ${data.epsGrowth}%)`);
     
     const peScore = data.peRatio < data.industryAvgPE ? 5 : data.peRatio < data.industryAvgPE * 1.2 ? 4 : data.peRatio < data.industryAvgPE * 1.5 ? 3 : data.peRatio < data.industryAvgPE * 2 ? 2 : 1;
     console.log(`P/E Score: ${peScore} (P/E: ${data.peRatio} vs Industry: ${data.industryAvgPE})`);
@@ -145,8 +146,15 @@ export default function Home() {
     if (dividendScore <= 2) concerns.push(`Weak dividend yield at ${data.dividendYield.toFixed(1)}%`);
     else if (dividendScore >= 4) strengths.push(`Attractive dividend yield of ${data.dividendYield.toFixed(1)}%`);
 
-    if (calculatedPegRatio > 2) concerns.push("High PEG ratio indicates overpricing relative to growth");
-    else if (calculatedPegRatio < 1) strengths.push("Low PEG ratio suggests undervaluation");
+    if (calculatedPegRatio !== null) {
+      if (calculatedPegRatio > 0 && calculatedPegRatio < 1) {
+        strengths.push("Low PEG ratio suggests undervaluation");
+      } else if (calculatedPegRatio > 2) {
+        concerns.push("High PEG ratio indicates overpricing relative to growth");
+      } else if (calculatedPegRatio < 0) {
+        concerns.push("Negative earnings growth makes valuation challenging");
+      }
+    }
 
     const peVsIndustry = ((data.peRatio - data.industryAvgPE) / data.industryAvgPE) * 100;
     const pbvVsIndustry = ((data.pbvRatio - data.industryAvgPBV) / data.industryAvgPBV) * 100;
