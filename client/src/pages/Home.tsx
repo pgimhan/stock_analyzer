@@ -331,9 +331,9 @@ export default function Home() {
                 <RatioTable 
                   result={analysisResult} 
                   industryData={{
-                    avgPE: 12,
-                    avgPBV: 1.0,
-                    avgROE: 10,
+                    avgPE: inputData!.industryAvgPE,
+                    avgPBV: inputData!.industryAvgPBV,
+                    avgROE: inputData!.industryAvgROE,
                   }}
                 />
                 <DetailedBreakdown result={analysisResult} inputData={inputData} />
@@ -349,9 +349,9 @@ export default function Home() {
               <RatioComparisonChart 
                 result={analysisResult} 
                 industryData={{
-                  avgPE: 12,
-                  avgPBV: 1.0,
-                  avgROE: 10,
+                  avgPE: inputData!.industryAvgPE,
+                  avgPBV: inputData!.industryAvgPBV,
+                  avgROE: inputData!.industryAvgROE,
                 }}
               />
             </div>

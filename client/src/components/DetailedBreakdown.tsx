@@ -39,7 +39,7 @@ export default function DetailedBreakdown({ result, inputData }: DetailedBreakdo
       name: "ROE", 
       score: result.scores.roeScore, 
       weight: result.weights.roeScore,
-      calculation: inputData ? `ROE: ${result.ratios.roe.toFixed(2)}%` : null,
+      calculation: inputData ? `ROE: ${result.ratios.roe.toFixed(2)}% vs Industry Avg: ${inputData.industryAvgROE.toFixed(2)}%` : null,
       logic: `Score 5: ROE > 20% | Score 4: ROE > 15% | Score 3: ROE > 10% | Score 2: ROE > 5% | Score 1: ROE ≤ 5%`
     },
     { 
