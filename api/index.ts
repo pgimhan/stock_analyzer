@@ -4,13 +4,56 @@ import fs from "fs/promises";
 import { createRequire } from "module";
 import OpenAI from "openai";
 import dotenv from "dotenv";
-import { db } from "../server/db";
-import { users, analyses } from "../shared/db-schema";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+import { pgTable, text, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { eq, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { log, logError, logRequest } from "../server/logger";
 
 dotenv.config();
+
+// Logger
+function log(message: string, data?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${message}`, data ? JSON.stringify(data) : '');
+}
+
+function logError(message: string, error: any) {
+  const timestamp = new Date().toISOString();
+  console.error(`[${timestamp}] ERROR: ${message}`, error);
+}
+
+function logRequest(method: string, path: string) {
+  log(`${method} ${path}`);
+}
+
+// Database schema
+const users = pgTable("user", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name"),
+  email: text("email").notNull().unique(),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
+  image: text("image"),
+  password: text("password"),
+});
+
+const analyses = pgTable("analysis", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  stockName: text("stockName").notNull(),
+  tickerSymbol: text("tickerSymbol").notNull(),
+  inputData: text("inputData").notNull(),
+  result: text("result").notNull(),
+  createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
+});
+
+// Database connection
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set");
+}
+
+const sql = neon(process.env.DATABASE_URL);
+const db = drizzle(sql, { schema: { users, analyses } });
 
 const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse");
