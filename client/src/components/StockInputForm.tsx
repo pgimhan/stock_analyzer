@@ -198,7 +198,7 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="revenue" className="flex items-center gap-2">
-                    Revenue *
+                    Revenue (TTM) *
                     <FieldInfo {...fieldDescriptions.revenue} />
                   </Label>
                   <div className="flex gap-2">
@@ -222,7 +222,7 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="netProfit" className="flex items-center gap-2">
-                    Net Profit *
+                    Net Profit (TTM) *
                     <FieldInfo {...fieldDescriptions.netProfit} />
                   </Label>
                   <div className="flex gap-2">
@@ -317,7 +317,7 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cashFlow" className="flex items-center gap-2">
-                    Operating Cash Flow *
+                    Operating Cash Flow (TTM) *
                     <FieldInfo {...fieldDescriptions.cashFlow} />
                   </Label>
                   <div className="flex gap-2">
@@ -391,16 +391,31 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="roe" className="flex items-center gap-2">
+                    ROE (%) *
+                    <FieldInfo {...fieldDescriptions.roe} />
+                  </Label>
+                  <Input
+                    id="roe"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    {...register("roe", { valueAsNumber: true })}
+                    data-testid="input-roe"
+                  />
+                  {errors.roe && <p className="text-sm text-destructive">{errors.roe.message}</p>}
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="evEbitda" className="flex items-center gap-2">
-                    EV/EBITDA *
+                    EV/EBITDA <span className="text-muted-foreground text-xs">(Optional)</span>
                     <FieldInfo {...fieldDescriptions.evEbitda} />
                   </Label>
                   <Input
                     id="evEbitda"
                     type="number"
                     step="0.01"
-                    placeholder="0.00"
-                    {...register("evEbitda", { valueAsNumber: true })}
+                    placeholder="Leave blank if unavailable"
+                    {...register("evEbitda", { setValueAs: v => v === '' ? undefined : Number(v) })}
                     data-testid="input-ev-ebitda"
                   />
                 </div>

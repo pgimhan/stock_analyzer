@@ -83,6 +83,13 @@ export const fieldDescriptions = {
     goodRange: "Below 1 is undervalued, 1-2 is fair, above 2 is expensive",
     example: "1.15 means fairly valued considering growth"
   },
+  roe: {
+    title: "ROE (Return on Equity)",
+    description: "Return on Equity shows how efficiently the company uses shareholder equity to generate profit.",
+    formula: "(Net Profit ÷ Shareholder Equity) × 100",
+    goodRange: "Above 15% is excellent, above 20% is exceptional",
+    example: "14.5% means company generates Rs. 14.50 profit per Rs. 100 of equity"
+  },
   evEbitda: {
     title: "EV/EBITDA",
     description: "Enterprise Value to Earnings Before Interest, Taxes, Depreciation & Amortization. Used for company valuation.",

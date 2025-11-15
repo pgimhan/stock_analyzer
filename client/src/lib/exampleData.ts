@@ -12,6 +12,7 @@ export const exampleStockData: StockAnalysis = {
   debt: 45000000,
   equity: 86206897,
   cashFlow: 18000000,
+  roe: 14.5,
   peRatio: 14.34,
   pbvRatio: 1.85,
   dividendYield: 3.2,

@@ -34,11 +34,10 @@ export default function Home() {
     console.log('Input Data:', data);
     
     // Calculate ratios from raw data
-    const roe = (data.netProfit / data.equity) * 100;
-    console.log(`ROE Calculation: (${data.netProfit} / ${data.equity}) * 100 = ${roe.toFixed(2)}%`);
+    const roe = data.roe;
+    console.log(`ROE (User Input): ${roe.toFixed(2)}%`);
     
     const roa = (data.netProfit / data.totalAssets) * 100;
-    console.log(`ROA Calculation: (${data.netProfit} / ${data.totalAssets}) * 100 = ${roa.toFixed(2)}%`);
     
     const profitMargin = (data.netProfit / data.revenue) * 100;
     console.log(`Profit Margin: (${data.netProfit} / ${data.revenue}) * 100 = ${profitMargin.toFixed(2)}%`);

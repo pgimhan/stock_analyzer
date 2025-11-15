@@ -98,7 +98,7 @@ export default function RatioTable({ result, industryData }: RatioTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ratios.map((ratio, index) => {
+              {ratios.filter(ratio => ratio.stock != null && ratio.stock !== 0).map((ratio, index) => {
                 const diff = ((ratio.stock - ratio.industry) / ratio.industry) * 100;
                 const status = getStatus(ratio.stock, ratio.industry, ratio.lowerIsBetter);
                 
