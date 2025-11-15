@@ -141,20 +141,85 @@ Keep each section concise and use the exact headers shown above.`;
 
     const metrics = [
       ["Share Price", `LKR ${inputData.sharePrice.toFixed(2)}`],
-      ["Market Capitalization", `LKR ${(inputData.sharePrice * inputData.sharesOutstanding / 1000000).toFixed(0)} Million`],
-      ["Price-to-Earnings Ratio", `${result.ratios.pe.toFixed(2)}x`],
-      ["Industry Average P/E", `${inputData.industryAvgPE.toFixed(2)}x`],
-      ["Price-to-Book Value", `${result.ratios.pbv.toFixed(2)}x`],
-      ["Return on Equity", `${result.ratios.roe.toFixed(2)}%`],
-      ["EPS Growth Rate", `${inputData.epsGrowth.toFixed(2)}%`],
-      ["Revenue Growth Rate", `${inputData.revenueGrowth.toFixed(2)}%`],
+      ["EPS (TTM)", `LKR ${inputData.epsTTM.toFixed(2)}`],
+      ["EPS (Forward)", inputData.epsForward ? `LKR ${inputData.epsForward.toFixed(2)}` : "N/A"],
+      ["Revenue", `LKR ${(inputData.revenue / 1000000).toFixed(2)} Million`],
+      ["Net Profit", `LKR ${(inputData.netProfit / 1000000).toFixed(2)} Million`],
+      ["Total Assets", `LKR ${(inputData.totalAssets / 1000000).toFixed(2)} Million`],
+      ["Total Debt", `LKR ${(inputData.debt / 1000000).toFixed(2)} Million`],
+      ["Total Equity", `LKR ${(inputData.equity / 1000000).toFixed(2)} Million`],
+      ["Cash Flow", `LKR ${(inputData.cashFlow / 1000000).toFixed(2)} Million`],
+      ["P/E Ratio", `${result.ratios.pe.toFixed(2)}x`],
+      ["Industry Avg P/E", `${inputData.industryAvgPE.toFixed(2)}x`],
+      ["P/BV Ratio", `${result.ratios.pbv.toFixed(2)}x`],
+      ["Industry Avg P/BV", `${inputData.industryAvgPBV.toFixed(2)}x`],
+      ["ROE", `${result.ratios.roe.toFixed(2)}%`],
+      ["Industry Avg ROE", `${inputData.industryAvgROE.toFixed(2)}%`],
+      ["PEG Ratio", result.ratios.peg ? `${result.ratios.peg.toFixed(2)}` : "N/A"],
+      ["EV/EBITDA", inputData.evEbitda ? `${result.ratios.evEbitda.toFixed(2)}x` : "N/A"],
+      ["EPS Growth", `${inputData.epsGrowth.toFixed(2)}%`],
+      ["Revenue Growth", `${inputData.revenueGrowth.toFixed(2)}%`],
       ["Dividend Yield", `${result.ratios.dividendYield.toFixed(2)}%`],
-      ["Debt-to-Equity Ratio", `${result.ratios.debtToEquity.toFixed(2)}`],
+      ["Debt-to-Equity", `${result.ratios.debtToEquity.toFixed(2)}`],
+      ["Market Index P/E", `${inputData.marketIndexPE?.toFixed(2) || '15.00'}x`],
     ];
 
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
     metrics.forEach(([label, value]) => {
+      pdf.text(`${label}:`, 25, y);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(value, 100, y);
+      pdf.setFont("helvetica", "normal");
+      y += 6;
+    });
+    y += 8;
+
+    // Score Breakdown
+    if (y > 240) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("SCORE BREAKDOWN", 20, y);
+    y += 8;
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    const scores = [
+      ["P/E vs Industry", `${result.scores.peVsIndustry.toFixed(2)}/5.0`, `(Weight: ${(result.weights.peVsIndustry * 100).toFixed(0)}%)`],
+      ["P/BV vs Book", `${result.scores.pbvVsBook.toFixed(2)}/5.0`, `(Weight: ${(result.weights.pbvVsBook * 100).toFixed(0)}%)`],
+      ["ROE Score", `${result.scores.roeScore.toFixed(2)}/5.0`, `(Weight: ${(result.weights.roeScore * 100).toFixed(0)}%)`],
+      ["EPS Growth", `${result.scores.epsGrowthScore.toFixed(2)}/5.0`, `(Weight: ${(result.weights.epsGrowthScore * 100).toFixed(0)}%)`],
+      ["Debt Score", `${result.scores.debtScore.toFixed(2)}/5.0`, `(Weight: ${(result.weights.debtScore * 100).toFixed(0)}%)`],
+      ["Cash Flow", `${result.scores.cashFlowScore.toFixed(2)}/5.0`, `(Weight: ${(result.weights.cashFlowScore * 100).toFixed(0)}%)`],
+      ["Dividend Score", `${result.scores.dividendScore.toFixed(2)}/5.0`, `(Weight: ${(result.weights.dividendScore * 100).toFixed(0)}%)`],
+    ];
+    scores.forEach(([label, score, weight]) => {
+      if (y > 280) { pdf.addPage(); y = 20; }
+      pdf.text(`${label}:`, 25, y);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(score, 100, y);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.text(weight, 130, y);
+      pdf.setFontSize(10);
+      y += 6;
+    });
+    y += 8;
+
+    // Industry Comparisons
+    if (y > 240) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(12);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("INDUSTRY COMPARISONS", 20, y);
+    y += 8;
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    const comparisons = [
+      ["P/E vs Industry", `${result.comparisons.peVsIndustry > 0 ? '+' : ''}${result.comparisons.peVsIndustry.toFixed(2)}%`],
+      ["P/BV vs Industry", `${result.comparisons.pbvVsIndustry > 0 ? '+' : ''}${result.comparisons.pbvVsIndustry.toFixed(2)}%`],
+      ["ROE vs Industry", `${result.comparisons.roeVsIndustry > 0 ? '+' : ''}${result.comparisons.roeVsIndustry.toFixed(2)}%`],
+    ];
+    comparisons.forEach(([label, value]) => {
+      if (y > 280) { pdf.addPage(); y = 20; }
       pdf.text(`${label}:`, 25, y);
       pdf.setFont("helvetica", "bold");
       pdf.text(value, 100, y);
