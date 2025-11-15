@@ -43,7 +43,7 @@ export const fieldDescriptions = {
     example: "Rs. 45M in loans and bonds"
   },
   equity: {
-    title: "Total Equity",
+    title: "Shareholder Equity",
     description: "Total shareholder equity (assets minus liabilities). Represents the net worth of the company.",
     formula: "Total Assets - Total Liabilities",
     goodRange: "Higher is better. Should be positive and growing",

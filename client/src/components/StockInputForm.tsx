@@ -33,7 +33,36 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
 
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      const detectUnit = (value: number) => {
+        if (value >= 1000000000) return 1000000000;
+        if (value >= 1000000) return 1000000;
+        if (value >= 1000) return 1000;
+        return 1;
+      };
+
+      const revUnit = detectUnit(initialData.revenue);
+      const npUnit = detectUnit(initialData.netProfit);
+      const taUnit = detectUnit(initialData.totalAssets);
+      const dUnit = detectUnit(initialData.debt);
+      const eUnit = detectUnit(initialData.equity);
+      const cfUnit = detectUnit(initialData.cashFlow);
+
+      setRevenueUnit(revUnit);
+      setNetProfitUnit(npUnit);
+      setTotalAssetsUnit(taUnit);
+      setDebtUnit(dUnit);
+      setEquityUnit(eUnit);
+      setCashFlowUnit(cfUnit);
+
+      reset({
+        ...initialData,
+        revenue: initialData.revenue / revUnit,
+        netProfit: initialData.netProfit / npUnit,
+        totalAssets: initialData.totalAssets / taUnit,
+        debt: initialData.debt / dUnit,
+        equity: initialData.equity / eUnit,
+        cashFlow: initialData.cashFlow / cfUnit,
+      });
     }
   }, [initialData, reset]);
   
@@ -41,6 +70,12 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
 
   const loadExample = () => {
     reset(exampleStockData);
+    setRevenueUnit(1);
+    setNetProfitUnit(1);
+    setTotalAssetsUnit(1);
+    setDebtUnit(1);
+    setEquityUnit(1);
+    setCashFlowUnit(1);
   };
 
 
@@ -178,9 +213,9 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={revenueUnit} onChange={(e) => setRevenueUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                   {errors.revenue && <p className="text-sm text-destructive">{errors.revenue.message}</p>}
@@ -202,9 +237,9 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={netProfitUnit} onChange={(e) => setNetProfitUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                   {errors.netProfit && <p className="text-sm text-destructive">{errors.netProfit.message}</p>}
@@ -226,9 +261,9 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={totalAssetsUnit} onChange={(e) => setTotalAssetsUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                   {errors.totalAssets && <p className="text-sm text-destructive">{errors.totalAssets.message}</p>}
@@ -250,15 +285,15 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={debtUnit} onChange={(e) => setDebtUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="equity" className="flex items-center gap-2">
-                    Equity *
+                    Shareholder Equity *
                     <FieldInfo {...fieldDescriptions.equity} />
                   </Label>
                   <div className="flex gap-2">
@@ -273,16 +308,16 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={equityUnit} onChange={(e) => setEquityUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                   {errors.equity && <p className="text-sm text-destructive">{errors.equity.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cashFlow" className="flex items-center gap-2">
-                    Cash Flow *
+                    Operating Cash Flow *
                     <FieldInfo {...fieldDescriptions.cashFlow} />
                   </Label>
                   <div className="flex gap-2">
@@ -297,9 +332,9 @@ export default function StockInputForm({ onAnalyze, initialData }: StockInputFor
                     />
                     <select className="border rounded-md px-3 text-sm bg-background" value={cashFlowUnit} onChange={(e) => setCashFlowUnit(Number(e.target.value))}>
                       <option value="1">Units</option>
-                      <option value="1000">K</option>
-                      <option value="1000000">M</option>
-                      <option value="1000000000">B</option>
+                      <option value="1000">Thousands</option>
+                      <option value="1000000">Millions</option>
+                      <option value="1000000000">Billions</option>
                     </select>
                   </div>
                   {errors.cashFlow && <p className="text-sm text-destructive">{errors.cashFlow.message}</p>}
