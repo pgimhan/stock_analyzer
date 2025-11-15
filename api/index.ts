@@ -8,6 +8,7 @@ import { db } from "../server/db";
 import { users, analyses } from "../shared/db-schema";
 import { eq, desc } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { log, logError, logRequest } from "../server/logger";
 
 dotenv.config();
 
@@ -22,8 +23,10 @@ app.use(express.urlencoded({ extended: false }));
 
 // Auth routes
 app.post("/api/auth/register", async (req, res) => {
+  logRequest('POST', '/api/auth/register');
   try {
     const { email, password, name } = req.body;
+    log('Register attempt', { email, name });
     
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
@@ -41,15 +44,19 @@ app.post("/api/auth/register", async (req, res) => {
       name: name || null,
     }).returning();
 
+    log('User registered', { userId: user.id, email: user.email });
     res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
   } catch (error: any) {
+    logError('Registration failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 app.post("/api/auth/signin", async (req, res) => {
+  logRequest('POST', '/api/auth/signin');
   try {
     const { email, password } = req.body;
+    log('Login attempt', { email });
     
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password required" });
@@ -65,24 +72,30 @@ app.post("/api/auth/signin", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
+    log('Login successful', { userId: user.id, email: user.email });
     res.json({ success: true, user: { id: user.id, email: user.email, name: user.name } });
   } catch (error: any) {
+    logError('Login failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 app.get("/api/auth/session", async (req, res) => {
+  logRequest('GET', '/api/auth/session');
   res.json(null);
 });
 
 app.post("/api/auth/signout", async (req, res) => {
+  logRequest('POST', '/api/auth/signout');
   res.json({ success: true });
 });
 
 // Analysis routes
 app.post("/api/analyses", async (req, res) => {
+  logRequest('POST', '/api/analyses');
   try {
     const { userId, stockName, tickerSymbol, inputData, result } = req.body;
+    log('Save analysis', { userId, stockName, tickerSymbol });
     
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -96,15 +109,19 @@ app.post("/api/analyses", async (req, res) => {
       result: JSON.stringify(result),
     }).returning();
 
+    log('Analysis saved', { analysisId: analysis.id, userId });
     res.json(analysis);
   } catch (error: any) {
+    logError('Save analysis failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 app.get("/api/analyses/:userId", async (req, res) => {
+  logRequest('GET', '/api/analyses/:userId');
   try {
     const { userId } = req.params;
+    log('Fetch analyses', { userId });
     
     const userAnalyses = await db.query.analyses.findMany({
       where: eq(analyses.userId, userId),
@@ -120,25 +137,33 @@ app.get("/api/analyses/:userId", async (req, res) => {
       timestamp: a.createdAt,
     }));
 
+    log('Analyses fetched', { userId, count: formatted.length });
     res.json(formatted);
   } catch (error: any) {
+    logError('Fetch analyses failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 app.delete("/api/analyses/:id", async (req, res) => {
+  logRequest('DELETE', '/api/analyses/:id');
   try {
     const { id } = req.params;
+    log('Delete analysis', { analysisId: id });
     await db.delete(analyses).where(eq(analyses.id, id));
+    log('Analysis deleted', { analysisId: id });
     res.json({ success: true });
   } catch (error: any) {
+    logError('Delete analysis failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Admin route
 app.get("/api/admin/users", async (req, res) => {
+  logRequest('GET', '/api/admin/users');
   try {
+    log('Fetch admin stats');
     const allUsers = await db.query.users.findMany();
     const allAnalyses = await db.query.analyses.findMany();
     
@@ -150,6 +175,7 @@ app.get("/api/admin/users", async (req, res) => {
       analysisCount: allAnalyses.filter(a => a.userId === user.id).length,
     }));
 
+    log('Admin stats fetched', { totalUsers: allUsers.length, totalAnalyses: allAnalyses.length });
     res.json({
       users: usersWithStats,
       stats: {
@@ -158,12 +184,15 @@ app.get("/api/admin/users", async (req, res) => {
       },
     });
   } catch (error: any) {
+    logError('Fetch admin stats failed', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 app.post("/api/upload-financial-report", upload.single("file"), async (req, res) => {
+  logRequest('POST', '/api/upload-financial-report');
   try {
+    log('PDF upload started');
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
@@ -244,8 +273,10 @@ ${pdfData.text.slice(0, 15000)}`;
 
     await fs.unlink(req.file.path).catch(() => {});
 
+    log('PDF processed', { companyName: extracted.companyName });
     res.json({ extracted, calculated, missing });
   } catch (error: any) {
+    logError('PDF processing failed', error);
     res.status(500).json({ error: error.message || "Failed to process report" });
   }
 });
