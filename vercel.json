@@ -1,16 +1,17 @@
 {
+  "version": 2,
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist/public",
   "functions": {
-    "api/index.ts": {
+    "api/**/*.ts": {
       "memory": 1024,
       "maxDuration": 30
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
     }
   ]
 }
