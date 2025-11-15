@@ -2,23 +2,149 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, Sparkles, Loader2 } from "lucide-react";
 import type { AnalysisResult } from "@shared/schema";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface DetailedBreakdownProps {
   result: AnalysisResult;
   inputData?: any;
 }
 
+interface QualitativeFactor {
+  title: string;
+  points: string[];
+  analysis?: string;
+}
+
 export default function DetailedBreakdown({ result, inputData }: DetailedBreakdownProps) {
   const [openItems, setOpenItems] = useState<number[]>([]);
+  const [apiKey, setApiKey] = useState(localStorage.getItem("openai_api_key") || "");
+  const [loading, setLoading] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [qualitativeFactors, setQualitativeFactors] = useState<QualitativeFactor[]>([
+    {
+      title: "Management Quality",
+      points: [
+        "Proven leadership with transparent reporting",
+        "Strong corporate governance practices"
+      ]
+    },
+    {
+      title: "Brand & Market Position",
+      points: [
+        "Strong market share in key segments",
+        "Growing brand reputation and customer loyalty"
+      ]
+    },
+    {
+      title: "Innovation & Diversification",
+      points: [
+        "Active new projects and technology upgrades",
+        "Export market expansion and diversification"
+      ]
+    },
+    {
+      title: "Economic Context",
+      points: [
+        "Sector recovery and favorable interest rates",
+        "Stable policy environment and low regulatory risk"
+      ]
+    }
+  ]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setApiKey(localStorage.getItem("openai_api_key") || "");
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const toggleItem = (index: number) => {
     setOpenItems(prev => 
       prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
     );
   };
+
+  const toggleSection = (title: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(title)) {
+        newSet.delete(title);
+      } else {
+        newSet.add(title);
+      }
+      return newSet;
+    });
+  };
+
+  const generateAnalysis = async () => {
+    if (!apiKey) return;
+
+    setLoading(true);
+
+    try {
+      const updatedFactors = await Promise.all(
+        qualitativeFactors.map(async (factor) => {
+          const prompt = `You are a professional financial analyst. Provide a detailed analysis elaborating on the implications of these qualitative factors for ${result.stockName} (${result.tickerSymbol}).
+
+Factor: ${factor.title}
+
+Existing Points:
+${factor.points.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+
+Context:
+- Overall Score: ${result.overallScore.toFixed(2)}/5.0
+- Verdict: ${result.verdict}
+- Recommendation: ${result.recommendation}
+- P/E Ratio: ${result.ratios.pe.toFixed(2)}
+- ROE: ${result.ratios.roe.toFixed(2)}%
+- Debt/Equity: ${result.ratios.debtToEquity.toFixed(2)}
+
+Provide a professional analysis (2-3 paragraphs) that:
+1. Explains the implications of each point
+2. Connects these factors to the company's financial performance
+3. Discusses how these factors impact investment decisions
+4. Maintains a professional, analytical tone
+
+Do not use headers or bullet points. Write in flowing paragraphs.`;
+
+          const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model: "gpt-4o-mini",
+              messages: [{ role: "user", content: prompt }],
+              temperature: 0.7,
+              max_tokens: 600,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            return { ...factor, analysis: `Error: ${data.error.message}` };
+          }
+
+          return { ...factor, analysis: data.choices[0].message.content };
+        })
+      );
+
+      setQualitativeFactors(updatedFactors);
+      setExpandedSections(new Set(updatedFactors.map(f => f.title)));
+    } catch (error) {
+      console.error("Error generating analysis:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hasAnalysis = qualitativeFactors.some(f => f.analysis);
 
   const factors = [
     { 
@@ -151,63 +277,80 @@ export default function DetailedBreakdown({ result, inputData }: DetailedBreakdo
           </TabsContent>
           
           <TabsContent value="qualitative" className="space-y-6 mt-6">
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-semibold mb-3">Management Quality</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-management-quality" />
-                    <label>Proven leadership with transparent reporting</label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-corporate-governance" />
-                    <label>Strong corporate governance practices</label>
-                  </div>
-                </div>
+            {!apiKey ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Please set your OpenAI API key in the AI Insights section to generate qualitative analysis.</p>
               </div>
+            ) : !hasAnalysis ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  Generate comprehensive qualitative analysis covering management quality, market position, innovation, and economic context.
+                </p>
+                <Button onClick={generateAnalysis} disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating Analysis...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Qualitative Analysis
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <Button onClick={generateAnalysis} disabled={loading} size="sm" variant="outline">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Regenerating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Regenerate
+                      </>
+                    )}
+                  </Button>
+                </div>
 
-              <div>
-                <h4 className="text-sm font-semibold mb-3">Brand & Market Position</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-market-share" />
-                    <label>Strong market share in key segments</label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-brand-reputation" />
-                    <label>Growing brand reputation and customer loyalty</label>
-                  </div>
-                </div>
-              </div>
+                {qualitativeFactors.map((factor) => (
+                  <div key={factor.title} className="border rounded-lg overflow-hidden">
+                    <button
+                      onClick={() => toggleSection(factor.title)}
+                      className="w-full px-4 py-3 bg-muted/50 hover:bg-muted transition-colors flex items-center justify-between"
+                    >
+                      <div className="text-left">
+                        <h3 className="font-semibold">{factor.title}</h3>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {factor.points.map((point, i) => (
+                            <span key={i}>
+                              {i > 0 && " • "}
+                              {point}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      {expandedSections.has(factor.title) ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </button>
 
-              <div>
-                <h4 className="text-sm font-semibold mb-3">Innovation & Diversification</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-new-projects" />
-                    <label>Active new projects and technology upgrades</label>
+                    {expandedSections.has(factor.title) && factor.analysis && (
+                      <div className="p-4 bg-background">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{factor.analysis}</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-export-growth" />
-                    <label>Export market expansion and diversification</label>
-                  </div>
-                </div>
+                ))}
               </div>
-
-              <div>
-                <h4 className="text-sm font-semibold mb-3">Economic Context</h4>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-sector-recovery" />
-                    <label>Sector recovery and favorable interest rates</label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <input type="checkbox" className="mt-1" data-testid="checkbox-policy-environment" />
-                    <label>Stable policy environment and low regulatory risk</label>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
